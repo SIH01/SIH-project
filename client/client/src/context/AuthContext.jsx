@@ -1,0 +1,68 @@
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { api, setAuthToken } from "../services/api";
+
+const AuthContext = createContext(null);
+const STORAGE_KEY = "disastershield_auth";
+
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      const { token, user: storedUser } = JSON.parse(stored);
+      setAuthToken(token);
+      setUser(storedUser);
+    }
+    setLoading(false);
+  }, []);
+
+  function persist(token, userData) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ token, user: userData }));
+    setAuthToken(token);
+    setUser(userData);
+  }
+
+  async function register(payload) {
+    const { data } = await api.post("/auth/register", payload);
+    persist(data.token, data.user);
+    return data.user;
+  }
+
+  async function login(payload) {
+    const { data } = await api.post("/auth/login", payload);
+    persist(data.token, data.user);
+    return data.user;
+  }
+
+  async function adminLogin(payload) {
+    const { data } = await api.post("/auth/admin-login", payload);
+    persist(data.token, data.user);
+    return data.user;
+  }
+
+  async function organizationLogin(payload) {
+    const { data } = await api.post("/auth/organization-login", payload);
+    persist(data.token, data.user);
+    return data.user;
+  }
+
+  function logout() {
+    localStorage.removeItem(STORAGE_KEY);
+    setAuthToken(null);
+    setUser(null);
+  }
+
+  return (
+    <AuthContext.Provider
+      value={{ user, loading, register, login, adminLogin, organizationLogin, logout }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export function useAuth() {
+  return useContext(AuthContext);
+}
