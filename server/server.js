@@ -1,4 +1,10 @@
 require("dotenv").config();
+
+if (!process.env.DATABASE_URL) {
+  console.error("DATABASE_URL is missing. Create server/.env from server/.env.example.");
+  process.exit(1);
+}
+
 const express = require("express");
 const cors = require("cors");
 const authRoutes = require("./routes/authRoutes");
