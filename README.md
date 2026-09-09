@@ -9,6 +9,10 @@ It helps people:
 - Submit a request for help.
 - Find approved nearby shelters.
 - Find verified relief organizations.
+	```powershell
+	cd server
+	npm run dev
+	```
 
 Administrators manage disaster records, alerts, help requests, organizations, and shelters.
 
