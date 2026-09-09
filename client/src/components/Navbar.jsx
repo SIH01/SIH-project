@@ -1,79 +1,53 @@
-import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
+import { api } from "../services/api";
 
-const navStyle = {
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  padding: "1.1rem 2rem",
-  background: "var(--ink)",
-  color: "var(--paper)",
-  flexWrap: "wrap",
-  gap: "0.75rem",
-};
-const linkGroupStyle = { display: "flex", gap: "1.4rem", alignItems: "center", flexWrap: "wrap" };
-const linkStyle = { color: "var(--paper)", textDecoration: "none", fontSize: "0.92rem" };
-const brandStyle = {
-  fontFamily: "var(--font-display)",
-  fontSize: "1.2rem",
-  color: "var(--paper)",
-  textDecoration: "none",
-  display: "flex",
-  alignItems: "center",
-  gap: "0.4rem",
-};
+const navItems = [
+  ["/", "Home", true], ["/map", "Disaster Map"], ["/get-help", "Get Help"],
+  ["/organizations", "Organizations"], ["/about", "About"],
+];
 
 export default function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [activeAlerts, setActiveAlerts] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadCount = () => api.get("/disasters/active-count")
+      .then(({ data }) => { if (!cancelled) setActiveAlerts(data.count); })
+      .catch(() => { if (!cancelled) setActiveAlerts(null); });
+    loadCount();
+    const timer = setInterval(loadCount, 5 * 60 * 1000);
+    return () => { cancelled = true; clearInterval(timer); };
+  }, []);
 
   function handleLogout() {
     logout();
     navigate("/");
   }
 
+  const linkClass = ({ isActive }) => `nav-link${isActive ? " active" : ""}`;
+
   return (
-    <nav style={navStyle}>
-      <Link to="/" style={brandStyle}>
-        🛡️ DisasterShield
-      </Link>
-      <div style={linkGroupStyle}>
-        <Link to="/" style={linkStyle}>Home</Link>
-        <Link to="/map" style={linkStyle}>Disaster Map</Link>
-        <Link to="/get-help" style={linkStyle}>Get Help</Link>
-        <Link to="/organizations" style={linkStyle}>Organizations</Link>
-        <Link to="/about" style={linkStyle}>About</Link>
+    <nav className="site-nav">
+      <div className="site-nav-inner">
+        <NavLink to="/" end className="nav-brand">
+          <span className="nav-brand-mark" aria-hidden="true"><span>✓</span></span>
+          <span>DisasterShield</span>
+        </NavLink>
 
-        {!user && (
-          <Link to="/login" className="btn btn-outline" style={{ padding: "0.4rem 0.9rem" }}>
-            Login
-          </Link>
-        )}
+        <div className="nav-links">
+          {navItems.map(([path, label, end]) => <NavLink key={path} to={path} end={end} className={linkClass}>{label}</NavLink>)}
+          <NavLink to="/map?status=active" className="nav-alert-chip"><span className="nav-alert-dot" />{activeAlerts == null ? "Live alerts" : `${activeAlerts} active alert${activeAlerts === 1 ? "" : "s"}`}</NavLink>
 
-        {user && user.role === "user" && (
-          <>
-            <span style={{ ...linkStyle, opacity: 0.75 }}>Hi, {user.name}</span>
-            <button onClick={handleLogout} className="btn btn-outline">Logout</button>
-          </>
-        )}
-
-        {user && user.role === "admin" && (
-          <>
-            <Link to="/admin/dashboard" style={linkStyle}>Admin Dashboard</Link>
-            <Link to="/admin/disasters" style={linkStyle}>Disasters</Link>
-            <Link to="/admin/disasters/new" style={linkStyle}>Add Disaster</Link>
-            <Link to="/admin/assistance" style={linkStyle}>Assistance Requests</Link>
-            <button onClick={handleLogout} className="btn btn-outline">Logout</button>
-          </>
-        )}
-
-        {user && user.role === "organization" && (
-          <>
-            <Link to="/organization/dashboard" style={linkStyle}>Org Dashboard</Link>
-            <button onClick={handleLogout} className="btn btn-outline">Logout</button>
-          </>
-        )}
+          {!user && <NavLink to="/login" className="nav-login">Login</NavLink>}
+          {user && user.role === "user" && <span className="nav-greeting">Hi, {user.name}</span>}
+          {user && user.role === "admin" && <><NavLink to="/admin/dashboard" className={linkClass}>Admin Dashboard</NavLink><NavLink to="/admin/assistance" className={linkClass}>Help Requests</NavLink></>}
+          {user && user.role === "organization" && <NavLink to="/organization/dashboard" className={linkClass}>Org Dashboard</NavLink>}
+          {user && <button onClick={handleLogout} className="nav-logout">Logout</button>}
+        </div>
       </div>
     </nav>
   );

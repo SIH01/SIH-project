@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 const pool = require("../db/pool");
 const { findByEmail } = require("../models/userStore");
 const {
-  getVerified, getAll, getById, getByUserId, create, setVerificationStatus,
+  getVerified, getAll, getPending, getById, getByUserId, create, setVerificationStatus,
 } = require("../models/organizationModel");
 const { logAdminAction } = require("../utils/auditLog");
 const { notify } = require("../utils/notify");
@@ -126,6 +126,17 @@ async function listAll(req, res) {
   }
 }
 
+// GET /api/organizations/pending — admin-only verification queue.
+async function listPending(req, res) {
+  try {
+    const organizations = await getPending();
+    res.json({ organizations });
+  } catch (err) {
+    console.error("listPending organizations error:", err.message);
+    res.status(500).json({ error: "Could not load pending organizations." });
+  }
+}
+
 // GET /api/organizations/me — the logged-in organization's own profile.
 async function getMyOrganization(req, res) {
   try {
@@ -152,7 +163,8 @@ async function getOrganizationById(req, res) {
 
 // PUT /api/organizations/:id/verify — admin only. Approve / reject / suspend / reactivate.
 async function verifyOrganization(req, res) {
-  const { verification_status } = req.body;
+  const verification_status = req.body.verification_status ||
+    (req.body.status === "approved" ? "Verified" : req.body.status === "rejected" ? "Rejected" : req.body.status);
   if (!VERIFICATION_STATUSES.includes(verification_status)) {
     return res.status(400).json({ error: "Status must be one of: " + VERIFICATION_STATUSES.join(", ") });
   }
@@ -176,6 +188,6 @@ async function verifyOrganization(req, res) {
 }
 
 module.exports = {
-  register, listVerified, listAll, getMyOrganization, getOrganizationById, verifyOrganization,
+  register, listVerified, listAll, listPending, getMyOrganization, getOrganizationById, verifyOrganization,
   ORG_TYPES, ASSISTANCE_CATEGORIES, VERIFICATION_STATUSES,
 };

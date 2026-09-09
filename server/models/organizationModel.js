@@ -21,6 +21,14 @@ async function getAll() {
   return rows;
 }
 
+async function getPending() {
+  const { rows } = await pool.query(
+    `select ${SELECT_FIELDS} from organizations
+     where verification_status in ('Pending', 'Under Review') order by created_at desc`
+  );
+  return rows;
+}
+
 async function getById(id) {
   const { rows } = await pool.query(`select ${SELECT_FIELDS} from organizations where id = $1`, [id]);
   return rows[0] || null;
@@ -64,4 +72,4 @@ async function setVerificationStatus(id, status) {
   return rows[0] || null;
 }
 
-module.exports = { getVerified, getAll, getById, getByUserId, create, setVerificationStatus };
+module.exports = { getVerified, getAll, getPending, getById, getByUserId, create, setVerificationStatus };

@@ -16,6 +16,11 @@ import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
 import AdminDisasterList from "./pages/admin/AdminDisasterList.jsx";
 import AdminDisasterForm from "./pages/admin/AdminDisasterForm.jsx";
 import AdminAssistanceList from "./pages/admin/AdminAssistanceList.jsx";
+import AdminShelters from "./pages/admin/AdminShelters.jsx";
+import AdminReliefRequests from "./pages/admin/AdminReliefRequests.jsx";
+import AdminOrganizations from "./pages/admin/AdminOrganizations.jsx";
+import AdminActiveAlerts from "./pages/admin/AdminActiveAlerts.jsx";
+import OrgShelterManager from "./pages/OrgShelterManager.jsx";
 import DisasterDetail from "./pages/DisasterDetail.jsx";
 import ComingSoon from "./components/ComingSoon.jsx";
 
@@ -76,14 +81,15 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/admin/shelters" element={<ProtectedRoute role="admin"><AdminShelters /></ProtectedRoute>} />
+        <Route path="/admin/relief-requests" element={<ProtectedRoute role="admin"><AdminReliefRequests /></ProtectedRoute>} />
+        <Route path="/admin/organizations" element={<ProtectedRoute role="admin"><AdminOrganizations /></ProtectedRoute>} />
+        <Route path="/admin/active-alerts" element={<ProtectedRoute role="admin"><AdminActiveAlerts /></ProtectedRoute>} />
         <Route
           path="/organization/dashboard"
           element={
             <ProtectedRoute role="organization">
-              <ComingSoon
-                title="Organization Dashboard"
-                stageNote="The API for nearby requests and responses is live (GET /api/assistance/nearby-for-org, POST /api/assistance/:id/respond) — this screen just hasn't been built yet."
-              />
+              <OrgShelterManager />
             </ProtectedRoute>
           }
         />
