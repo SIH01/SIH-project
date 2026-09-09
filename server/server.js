@@ -20,7 +20,23 @@ const app = express();
 // Stage 11 — basic hardening. helmet sets sane security headers; the
 // general limiter covers the whole API, with a stricter one on auth
 // endpoints (the most common target for credential-stuffing/spam).
-app.use(helmet());
+// The default CSP only allows same-origin resources, which silently
+// blocks the map tiles, marker icons, and fonts this app loads from
+// other domains — so those are explicitly allow-listed here.
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        imgSrc: ["'self'", "data:", "*.tile.openstreetmap.org", "unpkg.com"],
+        styleSrc: ["'self'", "'unsafe-inline'", "fonts.googleapis.com"],
+        fontSrc: ["'self'", "fonts.gstatic.com"],
+        connectSrc: ["'self'", "nominatim.openstreetmap.org", "*.tile.openstreetmap.org"],
+        scriptSrc: ["'self'"],
+      },
+    },
+  })
+);
 app.use(cors());
 app.use(express.json());
 
