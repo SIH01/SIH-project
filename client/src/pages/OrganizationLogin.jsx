@@ -54,6 +54,9 @@ export default function OrganizationLogin() {
         </button>
       </form>
       <p className="auth-switch"><Link to="/organizations">Back to organizations</Link></p>
+          {submitting ? "Logging in…" : "Login as organization"}
+        </button>
+      </form>
     </div>
   );
 }
