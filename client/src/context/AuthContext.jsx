@@ -48,6 +48,14 @@ export function AuthProvider({ children }) {
     return data.user;
   }
 
+  // Organization registration also returns a token — the account works
+  // immediately, but stays unverified until an admin approves it.
+  async function registerOrganization(payload) {
+    const { data } = await api.post("/organizations/register", payload);
+    persist(data.token, data.user);
+    return { user: data.user, organization: data.organization };
+  }
+
   function logout() {
     localStorage.removeItem(STORAGE_KEY);
     setAuthToken(null);
@@ -56,7 +64,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, register, login, adminLogin, organizationLogin, logout }}
+      value={{ user, loading, register, login, adminLogin, organizationLogin, registerOrganization, logout }}
     >
       {children}
     </AuthContext.Provider>

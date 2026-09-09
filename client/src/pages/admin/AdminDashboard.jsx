@@ -11,12 +11,11 @@ export default function AdminDashboard() {
 
       <div style={{ marginTop: "2rem", display: "flex", gap: "1rem" }}>
         <Link to="/admin/disasters" className="btn btn-awareness">Manage Disasters</Link>
+        <Link to="/admin/assistance" className="btn btn-awareness">Assistance Requests</Link>
       </div>
 
       <p style={{ marginTop: "2rem", color: "#5c6673" }}>
-        Organization verification, relief request moderation, campaign
-        review, and the rest of the admin navigation are built in later
-        stages.
+        Organization verification and campaign review are built in Stage 6.
       </p>
     </div>
   );
