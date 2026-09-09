@@ -1,11 +1,10 @@
 import axios from "axios";
 
-// In dev, defaults to your local backend. For access from other devices
-// (e.g. via a Cloudflare Tunnel), set VITE_API_URL in client/.env to your
-// backend's public tunnel URL — see the setup note below.
-const baseURL = import.meta.env.VITE_API_URL || "http://localhost:5001/api";
-
-export const api = axios.create({ baseURL });
+// Relative path — works in dev (Vite proxies /api to the backend, see
+// vite.config.js) AND once the backend serves the built frontend itself
+// (see server/server.js), so a single Cloudflare Tunnel to one port covers
+// everything. No tunnel URL ever needs to be hardcoded here.
+export const api = axios.create({ baseURL: "/api" });
 
 export function setAuthToken(token) {
   if (token) {
