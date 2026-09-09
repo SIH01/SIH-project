@@ -1,56 +1,106 @@
-import React from "react";
 import { Link } from "react-router-dom";
+import "./Landing.css";
 
 export default function Landing() {
   return (
-    <div>
-      <section style={{ background: "var(--ink)", color: "var(--paper)", padding: "5rem 2rem 4rem" }}>
-        <div style={{ maxWidth: "700px", margin: "0 auto", textAlign: "left" }}>
-          <h1 style={{ fontSize: "2.6rem", marginBottom: "1rem" }}>
-            Know the risk. Find help. Help others.
+    <div className="ds-landing">
+      <section className="hero">
+        <div className="hero-copy">
+          <div className="eyebrow">
+            <span className="eyebrow-dot"></span>
+            Disaster awareness & relief, in one place
+          </div>
+
+          <h1>
+            Know the risk.<br />
+            Find help.<br />
+            <span>Help others.</span>
           </h1>
-          <p style={{ color: "rgba(245,242,236,0.82)", fontSize: "1.1rem" }}>
-            DisasterShield combines disaster awareness with disaster relief,
-            helping people understand risks around their destination and
-            connecting affected communities with verified organizations.
+
+          <p className="hero-description">
+            DisasterShield brings disaster awareness and relief together —
+            helping people understand the risks around them and connecting
+            affected communities with verified organizations ready to act.
           </p>
+
+          <div className="ctas">
+            <Link to="/map" className="btn btn-primary">
+              Explore Disaster Map <span>↗</span>
+            </Link>
+            <Link to="/get-help" className="btn btn-secondary">
+              I Need Help <span>→</span>
+            </Link>
+          </div>
+        </div>
+
+        <div className="hero-visual">
+          <div className="hero-glow"></div>
+          <div className="shield-ring"></div>
+          <div className="shield"></div>
+          <div className="person">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
         </div>
       </section>
 
-      <section style={{ maxWidth: "1000px", margin: "0 auto", padding: "3rem 2rem" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "1.5rem" }}>
-          <div style={{ background: "#fff", border: "1px solid var(--line)", borderRadius: "8px", padding: "2rem" }}>
-            <span className="badge badge-awareness" style={{ marginBottom: "0.75rem" }}>🌍 DISASTER AWARENESS</span>
-            <h2 style={{ fontSize: "1.4rem", margin: "0.5rem 0 0.75rem" }}>Explore disasters around any location.</h2>
-            <p style={{ marginBottom: "1.5rem" }}>
-              Search or drop a pin and see recorded disasters within 50 km —
-              historical, current, or forecast, each clearly labeled.
-            </p>
-            <Link to="/map" className="btn btn-awareness">Explore Disaster Map</Link>
-          </div>
-
-          <div style={{ background: "#fff", border: "1px solid var(--line)", borderRadius: "8px", padding: "2rem" }}>
-            <span className="badge badge-relief" style={{ marginBottom: "0.75rem" }}>🆘 DISASTER RELIEF</span>
-            <h2 style={{ fontSize: "1.4rem", margin: "0.5rem 0 0.75rem" }}>Connect affected people with organizations that can help.</h2>
-            <p style={{ marginBottom: "1.5rem" }}>
-              Request food, shelter, medical, or mental-health support — and
-              get matched with verified organizations near you.
-            </p>
-            <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
-              <Link to="/get-help" className="btn btn-relief">I Need Help</Link>
-              <Link to="/get-help" className="btn btn-outline-ink">I Want to Help</Link>
-              <Link to="/organizations" className="btn btn-outline-ink">Register Organization</Link>
+      <section className="features">
+        <div className="feature-grid">
+          <article className="card card-green">
+            <div className="map-lines">
+              <span></span><span></span><span></span><span></span>
+              <div className="map-dot"></div>
             </div>
-          </div>
+
+            <div className="pill pill-awareness">Disaster Awareness</div>
+            <h2>Understand the risks around any location.</h2>
+            <p>
+              Search a location or drop a pin to explore historical,
+              active, and forecasted disasters within a 50 km radius.
+            </p>
+
+            <div className="card-actions">
+              <Link to="/map" className="btn btn-primary">
+                Explore Disaster Map <span>↗</span>
+              </Link>
+            </div>
+          </article>
+
+          <article className="card card-red relief">
+            <div className="map-lines">
+              <span></span><span></span><span></span><span></span>
+              <div className="map-dot"></div>
+            </div>
+
+            <div className="pill pill-relief">Disaster Relief</div>
+            <h2>Get the right help when it matters most.</h2>
+            <p>
+              Request food, shelter, medical care, or mental-health
+              support and connect with verified organizations near you.
+            </p>
+
+            <div className="card-actions">
+              <Link to="/get-help" className="btn btn-primary">
+                I Need Help <span>→</span>
+              </Link>
+              <Link to="/organizations/register" className="btn btn-secondary">
+                I Want to Help
+              </Link>
+            </div>
+          </article>
         </div>
       </section>
 
-      <section style={{ maxWidth: "700px", margin: "0 auto", padding: "1rem 2rem 3.5rem", textAlign: "center" }}>
-        <p style={{ color: "#5c6673" }}>New here?</p>
-        <div style={{ display: "flex", gap: "1rem", justifyContent: "center", flexWrap: "wrap" }}>
-          <Link to="/register" className="btn btn-outline-ink">Register</Link>
-          <Link to="/login" className="btn btn-outline-ink">Login</Link>
-          <Link to="/admin/login" className="btn btn-outline-ink">Admin Login</Link>
+      <section className="trust">
+        <div className="trust-label">
+          Built for communities, volunteers & relief organizations
+        </div>
+        <div className="trust-row">
+          <span>LOCAL COMMUNITIES</span>
+          <span>VOLUNTEERS</span>
+          <span>RELIEF GROUPS</span>
+          <span>FIRST RESPONDERS</span>
         </div>
       </section>
     </div>

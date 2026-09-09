@@ -1,4 +1,4 @@
-import React from "react";
+cdimport React from "react";
 import ComingSoon from "../../components/ComingSoon.jsx";
 
 export default function AdminAssistanceList() {
