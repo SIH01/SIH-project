@@ -19,8 +19,8 @@ export default function OrganizationLogin() {
     setForm({ ...form, [e.target.name]: e.target.value });
   }
 
-  async function handleSubmit(e) {
-    e.preventDefault();
+  async function handleSubmit(event) {
+    event.preventDefault();
     setError("");
     setSubmitting(true);
     try {
@@ -44,15 +44,11 @@ export default function OrganizationLogin() {
           <label htmlFor="email">Email</label>
     <div className="auth-card" style={{ borderTop: "3px solid var(--awareness)" }}>
       <h1>Organization login</h1>
-      <p className="subtitle">
-        Not registered yet? <Link to="/organizations/register">Register your organization</Link>.
-      </p>
-
+      <p className="subtitle">Sign in to respond to nearby assistance requests.</p>
       {error && <div className="error-banner">{error}</div>}
-
       <form onSubmit={handleSubmit}>
         <div className="field">
-          <label htmlFor="email">Organization email</label>
+          <label htmlFor="email">Email</label>
           <input id="email" name="email" type="email" value={form.email} onChange={handleChange} required />
         </div>
         <div className="field">
@@ -70,6 +66,7 @@ export default function OrganizationLogin() {
           {submitting ? "Logging in…" : "Login as organization"}
         </button>
       </form>
+      <p className="auth-switch"><Link to="/organizations">Back to organizations</Link></p>
     </div>
   );
 }
