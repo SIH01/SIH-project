@@ -10,7 +10,7 @@
 
 	```powershell
 	cd server
-	npm start
+	npm run dev
 	```
 
 6. Start the client in a second terminal:
