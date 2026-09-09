@@ -1,27 +1,444 @@
-# SIH-project
+# DisasterShield
 
-## Run locally
+DisasterShield is a disaster awareness and relief coordination web app.
 
-1. Create `server/.env` by copying `server/.env.example`.
-2. Replace `DATABASE_URL` with the PostgreSQL/Supabase connection string for the project.
-3. Run `server/db/schema_stage1.sql` and `server/db/schema_stage3.sql` in the database SQL editor.
-4. Run one or more seed files from `server/db/` if demo records are needed.
-5. Start the API:
+It helps people:
 
+- View disaster records near a selected location.
+- See active alerts.
+- Submit a request for help.
+- Find approved nearby shelters.
+- Find verified relief organizations.
 	```powershell
 	cd server
 	npm run dev
 	```
 
-6. Start the client in a second terminal:
+Administrators manage disaster records, alerts, help requests, organizations, and shelters.
 
-	```powershell
-	cd client
-	npm run dev
-	```
+The project uses:
 
-The client uses `/api` through the Vite proxy and the API runs on port `5001`.
+- React and Vite for the frontend.
+- Node.js and Express for the backend.
+- PostgreSQL/Supabase for the database.
+- Leaflet and React Leaflet for maps.
+- JWT tokens for login and role protection.
 
-## Map records
+## Requirements
 
-The map requests records only after a location is selected, and only within 50 km of that location. For the demo seeds, search for `Guwahati`, `Silchar`, or `Haflong` after the database setup is complete.
+Install these before starting:
+
+- Node.js 18 or newer.
+- npm.
+- A PostgreSQL or Supabase database.
+- A modern browser with JavaScript enabled.
+
+Node 18 or newer is needed because the backend uses the built-in `fetch` API for the USGS feed.
+
+## First-Time Setup
+
+### 1. Install dependencies
+
+Open PowerShell in the project folder:
+
+```powershell
+cd D:\VScode\SIH-project01\server
+npm install
+
+cd ..\client
+npm install
+```
+
+### 2. Create the backend environment file
+
+Copy `server/.env.example` to `server/.env`.
+
+Set these values:
+
+```env
+PORT=5001
+JWT_SECRET=use_a_long_random_secret
+DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@YOUR_DATABASE_HOST:5432/postgres
+```
+
+Do not commit `server/.env` or expose the database password.
+
+For Supabase, use the Session Pooler connection string if the direct database host cannot be resolved.
+
+### 3. Create the database tables
+
+Run these SQL files in the Supabase or PostgreSQL SQL editor, in this order:
+
+1. `server/db/schema_stage1.sql` - users and roles.
+2. `server/db/schema_stage3.sql` - disaster records.
+3. `server/db/schema_stage5.sql` - assistance requests.
+4. `server/db/schema_stage6.sql` - organizations.
+5. `server/db/schema_stage7.sql` - organization responses.
+6. `server/db/schema_stage8.sql` - missing-person records.
+7. `server/db/schema_stage9.sql` - fundraising campaigns.
+8. `server/db/schema_stage10.sql` - notifications and audit logs.
+9. `server/db/schema_stage11.sql` - relief requests and shelters.
+10. `server/db/schema_stage12.sql` - public Get Help requests.
+11. `server/db/schema_stage13.sql` - active-alert lifecycle fields.
+
+The latest features require all of these tables. If the new disaster endpoints return `Could not load disasters`, the schema files are usually missing from the database.
+
+### 4. Add demo data
+
+Run one seed file after the schema files:
+
+- `server/db/seed_demo_data.sql` - general demo records.
+- `server/db/seed_demo_data_assam.sql` - Assam-focused demo records.
+- `server/db/seed_demo_data_assam_2.sql` - additional Assam records.
+
+Run a seed file only when you want demo data. Do not run the same seed repeatedly if it inserts duplicate records.
+
+### 5. Create an admin account
+
+From the `server` directory:
+
+```powershell
+node scripts/createAdmin.js
+```
+
+Follow the prompts. The admin account is required for admin pages, active alerts, organization approval, shelter review, and help-request triage.
+
+## Start the App
+
+Use two terminals.
+
+### Terminal 1: backend
+
+```powershell
+cd D:\VScode\SIH-project01\server
+npm run dev
+```
+
+The backend runs at `http://localhost:5001`.
+
+Check it here:
+
+`http://localhost:5001/api/health`
+
+Expected response:
+
+```json
+{"status":"ok","stage":12}
+```
+
+### Terminal 2: frontend
+
+```powershell
+cd D:\VScode\SIH-project01\client
+npm run dev
+```
+
+The frontend normally runs at `http://localhost:5174`.
+
+If the port is busy, Vite may use another port such as `5175`. Use the URL printed in the terminal.
+
+### Production build
+
+```powershell
+cd D:\VScode\SIH-project01\client
+npm run build
+```
+
+The build output is created in `client/dist`.
+
+## Public Features
+
+### Home
+
+The home page explains the product and links to the main workflows.
+
+### Disaster Map
+
+Open `/map` or click **Disaster Map**.
+
+How it works:
+
+1. Search for a place, such as `Guwahati`, `Silchar`, or `Haflong`.
+2. Or click directly on the map.
+3. The app gets the selected latitude and longitude.
+4. The backend finds disasters within the selected radius.
+5. The map shows colored markers by disaster type.
+6. The results list can be filtered by type, severity, status, time, and sort order.
+7. Clicking a result moves the map to that event and highlights its marker.
+
+The radius can be set to `25`, `50`, or `100 km`.
+
+The active-alert chip in the navbar opens `/map?status=active` and shows only currently active disasters.
+
+### Disaster details
+
+Click **View details** on a map result.
+
+The detail page shows:
+
+- Disaster type, status, severity, and location.
+- Description and affected area.
+- Safety information.
+- Source information.
+- Date, coordinates, and distance from the selected point.
+- A small map preview.
+- Related-help submission.
+- Nearby approved shelter lookup.
+- Share and copy-link actions.
+
+### Get Help
+
+Open `/get-help`.
+
+1. Select a help type.
+2. Select urgency: Low, Medium, or Critical.
+3. Enter your name.
+4. Add at least one phone number or email address.
+5. Enter a location or attach the current location.
+6. Describe the need in at least 10 characters.
+7. Optionally add image attachments.
+8. Submit the request.
+
+After a successful submission, the page shows a request reference such as `GH-2001`.
+
+The backend also validates these rules. Frontend validation alone is not trusted.
+
+Public help submissions are limited to 5 submissions per IP address every 15 minutes.
+
+### Organizations
+
+Open `/organizations` to view approved organizations.
+
+To register:
+
+1. Open **Register your organization**.
+2. Enter the organization details and representative details.
+3. Add assistance categories and verification information.
+4. Submit the registration.
+
+An organization can log in, but it must be verified by an admin before it can submit shelters or manage organization features.
+
+### Organization shelters
+
+Verified organizations can open `/organization/dashboard`.
+
+They can:
+
+- Add a shelter.
+- Set coordinates, capacity, occupancy, contact, and facilities.
+- View their submitted shelters.
+- Edit their own shelters.
+- See whether each shelter is pending, approved, or rejected.
+
+New shelters are always pending first. They do not appear in public shelter results until an admin approves them.
+
+Editing an approved shelter sends it back to pending review.
+
+## Admin Features
+
+Log in at `/admin/login`, then open `/admin/dashboard`.
+
+### Manage disasters
+
+The admin can:
+
+- Add a disaster record.
+- Choose its type, status, severity, date, location, coordinates, description, safety information, and source.
+- Edit disaster details.
+- Delete a disaster record.
+
+### Active alerts
+
+Open `/admin/active-alerts`.
+
+The admin can:
+
+- View active alerts.
+- See creation time, expiry countdown, and last confirmation time.
+- Keep an alert active.
+- Mark an alert historical.
+- Mark an alert resolved.
+- Extend an alert by 24 or 72 hours.
+- Edit alert details.
+- Add a new active alert manually.
+
+Alerts close automatically when `active_until` passes. An admin extension updates the expiry time and records the confirming admin.
+
+The backend also polls the USGS earthquake feed every 15 minutes. It checks the configured region, imports new qualifying earthquakes as active alerts, and avoids duplicate records.
+
+Set this optional environment variable to change the automatic active window:
+
+```env
+ACTIVE_ALERT_WINDOW_HOURS=72
+```
+
+### Help request triage
+
+Open `/admin/assistance`.
+
+The admin can:
+
+- Filter by urgency and status.
+- Sort by urgency or newest date.
+- See the request reference, contact information, location, and description.
+- Change status: New, In review, In progress, Resolved, or Closed.
+- Assign a request to a verified organization.
+
+Critical requests use a red urgency indicator. Medium requests use amber. Low requests use green.
+
+### Relief requests
+
+Open `/admin/relief-requests` to manage related needs submitted from disaster detail pages.
+
+Statuses are:
+
+- `pending`
+- `in_progress`
+- `resolved`
+
+### Organization verification
+
+Open `/admin/organizations`.
+
+The admin can inspect pending organization details and approve or reject them. Only approved organizations can submit shelters.
+
+### Shelter review
+
+Open `/admin/shelters`.
+
+The admin can:
+
+- Review pending shelter submissions.
+- See the submitting organization, coordinates, capacity, occupancy, facilities, and contact.
+- Approve or reject a shelter.
+- Add a rejection note.
+- Review previously approved or rejected shelters.
+
+## Active Alert Logic
+
+The database uses the existing project status names:
+
+- `Current` means active.
+- `Historical` means no longer active.
+- `Resolved` means the event has been closed.
+- `Forecast` is used for forecast records.
+
+The API also accepts the simpler alert values `active`, `historical`, and `resolved` on admin status routes.
+
+Important fields:
+
+- `active_until` - when the active alert should expire.
+- `last_confirmed_by` - the admin who last confirmed or extended it.
+- `last_confirmed_at` - when that confirmation happened.
+
+Available active-alert endpoints:
+
+```text
+GET   /api/disasters/active-count
+GET   /api/disasters?status=active
+PATCH /api/disasters/:id/status
+PATCH /api/disasters/:id/extend
+POST  /api/disasters
+PATCH /api/disasters/:id
+```
+
+The active count endpoint is public and returns:
+
+```json
+{
+  "count": 0,
+  "updatedAt": "2026-09-10T00:00:00.000Z"
+}
+```
+
+## Main API Routes
+
+### Authentication
+
+```text
+POST /api/auth/register
+POST /api/auth/login
+POST /api/auth/admin-login
+POST /api/auth/organization-login
+```
+
+### Disasters
+
+```text
+GET    /api/disasters
+GET    /api/disasters/nearby?lat=&lng=&radius=
+GET    /api/disasters/:id
+POST   /api/disasters                 admin
+PATCH  /api/disasters/:id             admin
+PATCH  /api/disasters/:id/status      admin
+PATCH  /api/disasters/:id/extend      admin
+DELETE /api/disasters/:id             admin
+```
+
+### Help requests
+
+```text
+POST  /api/help-requests              public
+GET   /api/help-requests              admin
+PATCH /api/help-requests/:id          admin
+```
+
+### Shelters
+
+```text
+GET   /api/shelters?lat=&lng=&radius= public
+GET   /api/shelters/mine              approved organization
+POST  /api/shelters                   approved organization
+PATCH /api/shelters/:id               owning organization
+GET   /api/shelters/pending           admin
+GET   /api/shelters/all               admin
+PATCH /api/shelters/:id/review        admin
+```
+
+### Organizations
+
+```text
+POST  /api/organizations/register     public
+GET   /api/organizations              public approved list
+GET   /api/organizations/me           organization
+GET   /api/organizations/pending      admin
+PATCH /api/organizations/:id/verify   admin
+```
+
+Admin and organization routes require a JWT access token. The frontend stores the token in local storage after login and sends it as a Bearer token.
+
+## Troubleshooting
+
+### `EADDRINUSE: port 5001`
+
+Another backend process is already running. Do not start a second backend. Check:
+
+```powershell
+Invoke-WebRequest http://localhost:5001/api/health
+```
+
+### `Port 5174 is in use`
+
+Another Vite process is already running. Use the URL printed by Vite, often `5175`.
+
+### `Could not load disasters`
+
+Check these items:
+
+1. The backend is running.
+2. `server/.env` contains a valid `DATABASE_URL`.
+3. All schema files were run in order.
+4. `schema_stage13.sql` was run after the active-alert code was added.
+5. The database contains seed records or records created from the admin page.
+
+### The map shows no records
+
+The map does not load all disasters immediately. Search for a place or click the map first. Then increase the radius to `100 km` if the selected point is far from the records.
+
+### The active-alert count is zero
+
+The count includes only records with status `Current` and an unset or future `active_until` value. Historical demo records are not active alerts.
+
+## Important Safety Note
+
+DisasterShield is an early-stage prototype. Some records are demo data, and information may not be complete or current. Always follow official government alerts, emergency services, medical professionals, and local disaster-management authorities.

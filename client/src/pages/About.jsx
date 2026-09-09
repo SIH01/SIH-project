@@ -1,68 +1,21 @@
 import React from "react";
 
-function Section({ title, children }) {
-  return (
-    <div style={{ marginBottom: "1.75rem" }}>
-      <h2 style={{ fontSize: "1.2rem", marginBottom: "0.5rem" }}>{title}</h2>
-      <p>{children}</p>
-    </div>
-  );
+function AboutCard({ eyebrow, title, children }) {
+  return <section className="about-card"><span className="about-eyebrow">{eyebrow}</span><h2>{title}</h2><div className="about-card-copy">{children}</div></section>;
 }
 
 export default function About() {
   return (
-    <div style={{ maxWidth: "700px", margin: "3rem auto", padding: "0 2rem" }}>
-      <h1 style={{ fontSize: "2rem", marginBottom: "1.5rem" }}>What is DisasterShield?</h1>
-
-      <Section title="What is DisasterShield?">
-        DisasterShield combines disaster awareness with disaster relief:
-        it helps people understand risks around a destination, and connects
-        people affected by disasters with verified organizations that can help.
-      </Section>
-
-      <Section title="How the Disaster Awareness system works">
-        Select a location on the map and DisasterShield looks at recorded
-        disasters within a 50 km radius, drawn from the administrator-entered
-        disaster database.
-      </Section>
-
-      <Section title="How the 50 km search works">
-        The straight-line (great-circle) distance between your selected point
-        and each disaster's coordinates is calculated with the Haversine
-        formula. Only records within 50 km are shown, along with the exact
-        distance.
-      </Section>
-
-      <Section title="How disaster records are sourced">
-        Records are entered and reviewed by administrators, each with a
-        source/reference. Later stages will add clearly labeled external data
-        (weather, earthquake feeds, government alerts) alongside — never
-        mixed in as if it were the same thing.
-      </Section>
-
-      <Section title="How the Relief system works">
-        Affected people can request food, shelter, medical, or mental-health
-        support. Verified organizations operating within range are matched to
-        the request and can respond.
-      </Section>
-
-      <Section title="How organizations are verified">
-        Organizations register with their details and supporting documents.
-        An administrator reviews the application before the organization can
-        respond to any request or appear with a Verified badge.
-      </Section>
-
-      <Section title="How fundraising verification works">
-        Only verified organizations can create fundraising campaigns, and
-        every campaign is reviewed by an administrator before it becomes
-        publicly visible.
-      </Section>
-
-      <div className="error-banner" style={{ marginTop: "1rem", background: "rgba(16,27,45,0.05)", borderColor: "var(--line)", color: "var(--ink-on-paper)" }}>
-        DisasterShield is an awareness and coordination platform. It does not
-        replace official emergency alerts, government advisories, emergency
-        services, medical professionals, or disaster-management authorities.
+    <main className="about-shell">
+      <header className="about-hero"><span className="about-eyebrow">About DisasterShield</span><h1>Practical information when a disaster makes everything harder to find.</h1><p>This project brings disaster records, verified relief organizations, help requests, and shelter information into one place without pretending that a prototype replaces official emergency services.</p></header>
+      <div className="about-grid">
+        <AboutCard eyebrow="Why we built this" title="Information is often scattered when people need it most."><p>During events such as the Assam floods, updates, assistance contacts, location details, and requests for help can live in separate posts, spreadsheets, and agency channels. DisasterShield is an early attempt to make that information easier to explore by place and easier for verified responders to act on.</p></AboutCard>
+        <AboutCard eyebrow="How the data works" title="Different sources stay clearly labeled."><p>Historical disaster records can be imported from public databases such as the USGS Earthquake Catalog and reviewed by administrators. Live shelter and relief information comes from organizations whose details are reviewed and approved by DisasterShield admins before it is published. Demo records may still be present while the system is being expanded.</p></AboutCard>
+        <AboutCard eyebrow="Map and matching" title="Choose a place, then inspect the nearby picture."><p>The map uses coordinates and great-circle distance to find records around a selected location. Nearby shelter results are limited to approved, active submissions. Help requests are submitted without an account and enter an admin review queue.</p></AboutCard>
+        <AboutCard eyebrow="Current status" title="This is an active prototype."><p>DisasterShield is early-stage software under active development. Some workflows, integrations, and records are still demo-quality; alert counts and public data should be checked against official government notices, emergency services, and trusted local organizations.</p></AboutCard>
+        <AboutCard eyebrow="Built by" title="A small project team"><p>DisasterShield is being built by the SIH project team across product design, frontend React development, backend/API work, data modeling, and disaster-response research. Team names and formal roles can be added here as the project team finalizes its public credits.</p></AboutCard>
+        <AboutCard eyebrow="A clear boundary" title="Use this as a coordination aid."><p>For immediate danger, contact local emergency services and follow official government advisories. DisasterShield helps organize information; it does not verify every report in real time and does not replace professional emergency, medical, or disaster-management guidance.</p></AboutCard>
       </div>
-    </div>
+    </main>
   );
 }

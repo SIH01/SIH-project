@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const { getByUserId } = require("../models/organizationModel");
 
 function requireAuth(req, res, next) {
   const header = req.headers.authorization || "";
@@ -40,4 +41,24 @@ function requireAnyRole(...roles) {
   };
 }
 
-module.exports = { requireAuth, requireRole, requireAnyRole };
+function requireAdmin(req, res, next) {
+  requireAuth(req, res, () => requireRole("admin")(req, res, next));
+}
+
+async function requireApprovedOrg(req, res, next) {
+  if (!req.user || req.user.role !== "organization") {
+    return res.status(403).json({ error: "Organization access required." });
+  }
+  try {
+    const organization = await getByUserId(req.user.id);
+    if (!organization || organization.verification_status !== "Verified") {
+      return res.status(403).json({ error: "Your organization must be approved before managing shelters." });
+    }
+    req.organization = organization;
+    next();
+  } catch (err) {
+    return res.status(500).json({ error: "Could not verify organization status." });
+  }
+}
+
+module.exports = { requireAuth, requireRole, requireAnyRole, requireAdmin, requireApprovedOrg };

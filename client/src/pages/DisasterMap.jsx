@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { MapContainer, TileLayer, Marker, Circle, CircleMarker, Popup, useMapEvents } from "react-leaflet";
+import { Link, useSearchParams } from "react-router-dom";
+import { MapContainer, TileLayer, Marker, Circle, CircleMarker, Popup, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import { api } from "../services/api";
-import { colorForType, radiusForSeverity } from "../utils/disasterOptions";
+import { DISASTER_TYPES, colorForType, radiusForSeverity } from "../utils/disasterOptions";
 import { applyDisasterFilters, DEFAULT_FILTERS } from "../utils/filterDisasters";
 import DisasterFilters from "../components/DisasterFilters";
 import RiskSummary from "../components/RiskSummary";
@@ -16,23 +16,77 @@ const markerIcon = new L.Icon({
   iconAnchor: [12, 41],
 });
 
-const RADIUS_KM = 50;
-const RADIUS_METERS = RADIUS_KM * 1000;
+const RADIUS_OPTIONS = [25, 50, 100];
+
+function normalizeLongitude(value) {
+  const longitude = Number(value);
+  if (!Number.isFinite(longitude)) return 0;
+  return ((longitude + 180) % 360 + 360) % 360 - 180;
+}
+
+function normalizeLatitude(value) {
+  return Math.max(-90, Math.min(90, Number(value)));
+}
+
+async function readUtf8Json(response) {
+  if (!response.ok) throw new Error(`Request failed with status ${response.status}`);
+  const bytes = await response.arrayBuffer();
+  return JSON.parse(new TextDecoder("utf-8").decode(bytes));
+}
 
 function ClickHandler({ onSelect }) {
   useMapEvents({
     click(e) {
-      onSelect({ lat: e.latlng.lat, lng: e.latlng.lng });
+      onSelect({ lat: normalizeLatitude(e.latlng.lat), lng: normalizeLongitude(e.latlng.lng) });
     },
   });
   return null;
+}
+
+function MapFocus({ disaster, onReady }) {
+  const map = useMap();
+
+  useEffect(() => {
+    onReady(map);
+  }, [map, onReady]);
+
+  useEffect(() => {
+    if (!disaster) return;
+    map.flyTo([Number(disaster.latitude), normalizeLongitude(disaster.longitude)], Math.max(map.getZoom(), 8), {
+      duration: 0.7,
+    });
+  }, [disaster, map]);
+
+  return null;
+}
+
+function MapLegend() {
+  return (
+    <div className="map-legend">
+      <strong>Disaster types</strong>
+      {DISASTER_TYPES.map((type) => (
+        <div key={type} className="map-legend-item">
+          <span className="map-legend-dot" style={{ background: colorForType(type) }} />
+          {type}
+        </div>
+      ))}
+    </div>
+  );
 }
 
 function shortenLabel(displayName) {
   return displayName ? displayName.split(",").slice(0, 3).join(",") : null;
 }
 
+function severityClass(severity) {
+  if (severity === "High" || severity === "Severe") return "risk-severity risk-severity-high";
+  if (severity === "Moderate") return "risk-severity risk-severity-medium";
+  return "risk-severity risk-severity-low";
+}
+
 export default function DisasterMap() {
+  const [searchParams] = useSearchParams();
+  const activeOnly = searchParams.get("status") === "active";
   const [selected, setSelected] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchError, setSearchError] = useState("");
@@ -42,6 +96,9 @@ export default function DisasterMap() {
   const [loadingDisasters, setLoadingDisasters] = useState(false);
   const [disasterError, setDisasterError] = useState("");
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
+  const [radiusKm, setRadiusKm] = useState(50);
+  const [selectedDisasterId, setSelectedDisasterId] = useState(null);
+  const [mapInstance, setMapInstance] = useState(null);
 
   // Fetch nearby disasters whenever the selected point changes.
   useEffect(() => {
@@ -53,7 +110,7 @@ export default function DisasterMap() {
     setLoadingDisasters(true);
     setDisasterError("");
     api
-      .get("/disasters/nearby", { params: { lat: selected.lat, lng: selected.lng, radius: RADIUS_KM } })
+      .get("/disasters/nearby", { params: { lat: selected.lat, lng: selected.lng, radius: radiusKm } })
       .then(({ data }) => {
         if (!cancelled) setDisasters(data.disasters);
       })
@@ -66,14 +123,16 @@ export default function DisasterMap() {
     return () => {
       cancelled = true;
     };
-  }, [selected?.lat, selected?.lng]);
+  }, [selected?.lat, selected?.lng, radiusKm]);
 
   // Fill in a readable location name if we only have raw coordinates (map click).
   useEffect(() => {
     if (!selected || selected.label) return;
     let cancelled = false;
-    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${selected.lat}&lon=${selected.lng}`)
-      .then((res) => res.json())
+    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${selected.lat}&lon=${selected.lng}`, {
+      headers: { Accept: "application/json; charset=utf-8" },
+    })
+      .then(readUtf8Json)
       .then((data) => {
         if (cancelled) return;
         const label = shortenLabel(data.display_name);
@@ -98,14 +157,14 @@ export default function DisasterMap() {
       const res = await fetch(
         `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(searchTerm)}`
       );
-      const results = await res.json();
+      const results = await readUtf8Json(res);
       if (results.length === 0) {
         setSearchError("No matching location found.");
         return;
       }
       setSelected({
-        lat: parseFloat(results[0].lat),
-        lng: parseFloat(results[0].lon),
+        lat: normalizeLatitude(results[0].lat),
+        lng: normalizeLongitude(results[0].lon),
         label: shortenLabel(results[0].display_name),
       });
     } catch (err) {
@@ -115,7 +174,17 @@ export default function DisasterMap() {
     }
   }
 
-  const filteredDisasters = applyDisasterFilters(disasters, filters);
+  const filteredDisasters = applyDisasterFilters(activeOnly ? disasters.filter((disaster) => disaster.status === "Current") : disasters, filters);
+  const selectedDisaster = disasters.find((disaster) => disaster.id === selectedDisasterId);
+
+  function focusDisaster(disaster) {
+    setSelectedDisasterId(disaster.id);
+    if (mapInstance) {
+      mapInstance.flyTo([Number(disaster.latitude), normalizeLongitude(disaster.longitude)], Math.max(mapInstance.getZoom(), 8), {
+        duration: 0.7,
+      });
+    }
+  }
 
   return (
     <div>
@@ -139,23 +208,32 @@ export default function DisasterMap() {
           <button className="btn btn-outline-ink" type="submit" disabled={searching}>
             {searching ? "Searching…" : "Search"}
           </button>
+          <select
+            className="radius-select"
+            value={radiusKm}
+            onChange={(e) => setRadiusKm(Number(e.target.value))}
+            aria-label="Search radius"
+          >
+            {RADIUS_OPTIONS.map((radius) => <option key={radius} value={radius}>{radius} km radius</option>)}
+          </select>
         </form>
       </div>
 
       {selected && (
-        <div style={{ margin: "1rem 2rem 0", display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-          <div style={{ padding: "1rem 1.25rem", background: "#fff", border: "1px solid var(--line)", borderRadius: "6px", flex: 1, minWidth: "260px" }}>
-            <div style={{ fontWeight: 700, marginBottom: "0.4rem" }}>Selected Location</div>
-            {selected.label && <div style={{ marginBottom: "0.4rem" }}>{selected.label}</div>}
-            <div>Latitude: {selected.lat.toFixed(4)}</div>
-            <div>Longitude: {selected.lng.toFixed(4)}</div>
-            <div style={{ marginTop: "0.4rem", color: "var(--awareness-dark)", fontWeight: 600 }}>
-              Search Radius: {RADIUS_KM} km
+        <div className="map-overview-card">
+          <div className="selected-location">
+            <div className="selected-location-mark" aria-hidden="true">⌖</div>
+            <div className="map-section-title">Selected Location</div>
+            {selected.label && <div className="selected-location-name">{selected.label}</div>}
+            <div className="selected-coordinates">
+              <span>Lat {selected.lat.toFixed(4)}</span>
+              <span>Lon {selected.lng.toFixed(4)}</span>
             </div>
+            <div className="selected-radius">Search radius: {radiusKm} km</div>
           </div>
 
           {!loadingDisasters && disasters.length > 0 && (
-            <RiskSummary locationName={selected.label || `${selected.lat.toFixed(2)}, ${selected.lng.toFixed(2)}`} radiusKm={RADIUS_KM} disasters={disasters} />
+            <RiskSummary locationName={selected.label || `${selected.lat.toFixed(2)}, ${selected.lng.toFixed(2)}`} radiusKm={radiusKm} disasters={disasters} />
           )}
         </div>
       )}
@@ -175,19 +253,27 @@ export default function DisasterMap() {
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
+            <MapFocus disaster={selectedDisaster} onReady={setMapInstance} />
             <ClickHandler onSelect={setSelected} />
+            <MapLegend />
             {selected && (
               <>
                 <Marker position={selected} icon={markerIcon} />
-                <Circle center={selected} radius={RADIUS_METERS} pathOptions={{ color: "#2f6f76", fillOpacity: 0.08 }} />
+                <Circle center={selected} radius={radiusKm * 1000} pathOptions={{ color: "#2f6f76", fillOpacity: 0.08 }} />
               </>
             )}
             {filteredDisasters.map((d) => (
               <CircleMarker
                 key={d.id}
-                center={[d.latitude, d.longitude]}
+                center={[Number(d.latitude), normalizeLongitude(d.longitude)]}
                 radius={radiusForSeverity(d.severity)}
-                pathOptions={{ color: colorForType(d.type), fillColor: colorForType(d.type), fillOpacity: 0.75, weight: 2 }}
+                eventHandlers={{ click: () => focusDisaster(d) }}
+                pathOptions={{
+                  color: selectedDisasterId === d.id ? "#101b2d" : colorForType(d.type),
+                  fillColor: colorForType(d.type),
+                  fillOpacity: 0.8,
+                  weight: selectedDisasterId === d.id ? 4 : 2,
+                }}
               >
                 <Popup>
                   <div style={{ minWidth: "180px" }}>
@@ -211,19 +297,37 @@ export default function DisasterMap() {
             {loadingDisasters ? (
               <p style={{ padding: "1rem" }}>Loading disaster records…</p>
             ) : filteredDisasters.length === 0 ? (
-              <p style={{ padding: "1rem", color: "#5c6673" }}>No disasters match the current filters.</p>
+              <div className="empty-state">
+                <div className="empty-state-icon" aria-hidden="true">⌕</div>
+                <strong>No disasters found</strong>
+                <p>Try widening the radius or changing your filters.</p>
+              </div>
             ) : (
               filteredDisasters.map((d) => (
-                <Link
+                  <div
                   key={d.id}
-                  to={`/disasters/${d.id}?lat=${selected.lat}&lng=${selected.lng}`}
-                  style={{ display: "block", padding: "0.9rem 1rem", borderBottom: "1px solid var(--line)", textDecoration: "none", color: "inherit" }}
+                    className={`disaster-result ${selectedDisasterId === d.id ? "disaster-result-selected" : ""}`}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => focusDisaster(d)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") focusDisaster(d);
+                    }}
                 >
-                  <div style={{ fontWeight: 700 }}>{d.name}</div>
-                  <div style={{ fontSize: "0.85rem", color: "#5c6673" }}>
-                    {d.type} · {d.severity} · {d.distance_km} km away
+                    <div style={{ fontWeight: 700 }}>{d.location_name || d.name}</div>
+                    <div className="disaster-result-meta">
+                      <span>{d.type}</span>
+                      <span className={severityClass(d.severity)}>{d.severity}</span>
+                      <span>{d.distance_km} km away</span>
                   </div>
-                </Link>
+                    <Link
+                      to={`/disasters/${d.id}?lat=${selected.lat}&lng=${selected.lng}`}
+                      onClick={(event) => event.stopPropagation()}
+                      className="disaster-result-link"
+                    >
+                      View details →
+                    </Link>
+                  </div>
               ))
             )}
           </div>
@@ -231,7 +335,7 @@ export default function DisasterMap() {
       </div>
 
       <p style={{ padding: "1rem 2rem", color: "#5c6673", fontSize: "0.9rem" }}>
-        Click anywhere on the map to drop a pin, or search above. Disaster markers within {RADIUS_KM} km
+        Click anywhere on the map to drop a pin, or search above. Disaster markers within {radiusKm} km
         of your selected point appear automatically — filter, sort, or click any record for full details.
       </p>
     </div>

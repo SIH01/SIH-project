@@ -14,8 +14,17 @@ const missingPersonRoutes = require("./routes/missingPersonRoutes");
 const campaignRoutes = require("./routes/campaignRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const reliefRequestRoutes = require("./routes/reliefRequestRoutes");
+const shelterRoutes = require("./routes/shelterRoutes");
+const helpRequestRoutes = require("./routes/helpRequestRoutes");
+const { runActiveAlertJob } = require("./jobs/activeAlertJob");
 
 const app = express();
+
+app.use((req, res, next) => {
+  if (req.path.startsWith("/api/")) res.setHeader("Content-Type", "application/json; charset=utf-8");
+  next();
+});
 
 // Stage 11 — basic hardening. helmet sets sane security headers; the
 // general limiter covers the whole API, with a stricter one on auth
@@ -57,6 +66,15 @@ app.use("/api/missing-persons", missingPersonRoutes);
 app.use("/api/campaigns", campaignRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/relief-requests", reliefRequestRoutes);
+app.use("/api/shelters", shelterRoutes);
+app.use("/api/help-requests", helpRequestRoutes);
+
+const ACTIVE_ALERT_POLL_MS = 15 * 60 * 1000;
+runActiveAlertJob().catch((error) => console.error("initial active alert job error:", error.message));
+setInterval(() => {
+  runActiveAlertJob().catch((error) => console.error("active alert job error:", error.message));
+}, ACTIVE_ALERT_POLL_MS);
 
 // Serve the built frontend (client/dist) from this same server/port, once
 // it exists. This means ONE Cloudflare Tunnel to this port covers both the
