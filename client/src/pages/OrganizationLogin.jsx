@@ -13,10 +13,6 @@ export default function OrganizationLogin() {
     setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
   }
 
-  function handleChange(e) {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  }
-
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
@@ -54,9 +50,6 @@ export default function OrganizationLogin() {
         </button>
       </form>
       <p className="auth-switch"><Link to="/organizations">Back to organizations</Link></p>
-          {submitting ? "Logging in…" : "Login as organization"}
-        </button>
-      </form>
     </div>
   );
 }
