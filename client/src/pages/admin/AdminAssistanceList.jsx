@@ -9,3 +9,15 @@ export default function AdminAssistanceList() {
     />
   );
 }
+import React, { useEffect, useState } from "react";
+import { api } from "../../services/api";
+import { REQUEST_STATUSES, badgeForStatus } from "../../utils/assistanceOptions";
+
+export default function AdminAssistanceList() {
+  return (
+    <ComingSoon
+      title="Assistance requests"
+      stageNote="Assistance request moderation will appear here when the assistance API is enabled."
+    />
+  );
+}
