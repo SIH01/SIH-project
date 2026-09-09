@@ -9,36 +9,32 @@ export default function OrganizationLogin() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  function handleChange(e) {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  function handleChange(event) {
+    setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
   }
 
-  async function handleSubmit(e) {
-    e.preventDefault();
+  async function handleSubmit(event) {
+    event.preventDefault();
     setError("");
     setSubmitting(true);
     try {
       await organizationLogin(form);
       navigate("/organization/dashboard");
     } catch (err) {
-      setError(err.response?.data?.error || "Invalid organization credentials.");
+      setError(err.response?.data?.error || "Organization login failed. Try again.");
     } finally {
       setSubmitting(false);
     }
   }
 
   return (
-    <div className="auth-card" style={{ borderTop: "3px solid var(--awareness)" }}>
+    <div className="auth-card">
       <h1>Organization login</h1>
-      <p className="subtitle">
-        Not registered yet? <Link to="/organizations/register">Register your organization</Link>.
-      </p>
-
+      <p className="subtitle">Sign in to respond to nearby assistance requests.</p>
       {error && <div className="error-banner">{error}</div>}
-
       <form onSubmit={handleSubmit}>
         <div className="field">
-          <label htmlFor="email">Organization email</label>
+          <label htmlFor="email">Email</label>
           <input id="email" name="email" type="email" value={form.email} onChange={handleChange} required />
         </div>
         <div className="field">
@@ -46,9 +42,10 @@ export default function OrganizationLogin() {
           <input id="password" name="password" type="password" value={form.password} onChange={handleChange} required />
         </div>
         <button className="btn btn-awareness" type="submit" disabled={submitting} style={{ width: "100%" }}>
-          {submitting ? "Logging in…" : "Login as organization"}
+          {submitting ? "Signing in…" : "Sign in"}
         </button>
       </form>
+      <p className="auth-switch"><Link to="/organizations">Back to organizations</Link></p>
     </div>
   );
 }
