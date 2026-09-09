@@ -1,10 +1,4 @@
 require("dotenv").config();
-
-if (!process.env.DATABASE_URL) {
-  console.error("DATABASE_URL is missing. Create server/.env from server/.env.example.");
-  process.exit(1);
-}
-
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
@@ -24,7 +18,23 @@ const app = express();
 // Stage 11 — basic hardening. helmet sets sane security headers; the
 // general limiter covers the whole API, with a stricter one on auth
 // endpoints (the most common target for credential-stuffing/spam).
-app.use(helmet());
+// The default CSP only allows same-origin resources, which silently
+// blocks the map tiles, marker icons, and fonts this app loads from
+// other domains — so those are explicitly allow-listed here.
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        imgSrc: ["'self'", "data:", "*.tile.openstreetmap.org", "unpkg.com"],
+        styleSrc: ["'self'", "'unsafe-inline'", "fonts.googleapis.com"],
+        fontSrc: ["'self'", "fonts.gstatic.com"],
+        connectSrc: ["'self'", "nominatim.openstreetmap.org", "*.tile.openstreetmap.org"],
+        scriptSrc: ["'self'"],
+      },
+    },
+  })
+);
 app.use(cors());
 app.use(express.json());
 
@@ -45,6 +55,21 @@ app.use("/api/missing-persons", missingPersonRoutes);
 app.use("/api/campaigns", campaignRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/admin", adminRoutes);
+
+// Serve the built frontend (client/dist) from this same server/port, once
+// it exists. This means ONE Cloudflare Tunnel to this port covers both the
+// site and the API — no separate frontend tunnel, and no tunnel URL ever
+// needs to be hardcoded in the frontend (it calls a relative "/api" path).
+// Run "npm run build" in client/ to produce client/dist before this works;
+// in local dev, keep using "npm run dev" in client/ instead (Vite serves
+// it on 5174 and proxies /api to this server — see client/vite.config.js).
+const clientDistPath = path.join(__dirname, "..", "client", "dist");
+if (fs.existsSync(clientDistPath)) {
+  app.use(express.static(clientDistPath));
+  app.get(/^(?!\/api).*/, (req, res) => {
+    res.sendFile(path.join(clientDistPath, "index.html"));
+  });
+}
 
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
