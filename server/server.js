@@ -1,4 +1,6 @@
 require("dotenv").config();
+const path = require("path");
+const fs = require("fs");
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
@@ -39,6 +41,21 @@ app.use("/api/missing-persons", missingPersonRoutes);
 app.use("/api/campaigns", campaignRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/admin", adminRoutes);
+
+// Serve the built frontend (client/dist) from this same server/port, once
+// it exists. This means ONE Cloudflare Tunnel to this port covers both the
+// site and the API — no separate frontend tunnel, and no tunnel URL ever
+// needs to be hardcoded in the frontend (it calls a relative "/api" path).
+// Run "npm run build" in client/ to produce client/dist before this works;
+// in local dev, keep using "npm run dev" in client/ instead (Vite serves
+// it on 5174 and proxies /api to this server — see client/vite.config.js).
+const clientDistPath = path.join(__dirname, "..", "client", "dist");
+if (fs.existsSync(clientDistPath)) {
+  app.use(express.static(clientDistPath));
+  app.get(/^(?!\/api).*/, (req, res) => {
+    res.sendFile(path.join(clientDistPath, "index.html"));
+  });
+}
 
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
