@@ -63,6 +63,7 @@ export default function Navbar() {
             <Link to="/admin/dashboard" style={linkStyle}>Admin Dashboard</Link>
             <Link to="/admin/disasters" style={linkStyle}>Disasters</Link>
             <Link to="/admin/disasters/new" style={linkStyle}>Add Disaster</Link>
+            <Link to="/admin/assistance" style={linkStyle}>Assistance Requests</Link>
             <button onClick={handleLogout} className="btn btn-outline">Logout</button>
           </>
         )}

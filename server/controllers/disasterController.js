@@ -2,6 +2,7 @@ const {
   getAll, getById, getNearby, create, update, remove,
 } = require("../models/disasterModel");
 const { haversineDistanceKm } = require("../utils/haversine");
+const { logAdminAction } = require("../utils/auditLog");
 
 const TYPES = [
   "Flood", "Earthquake", "Cyclone", "Tsunami", "Landslide", "Wildfire",
@@ -83,6 +84,7 @@ async function createDisaster(req, res) {
 
   try {
     const disaster = await create({ ...body, createdBy: req.user.id });
+    await logAdminAction(req.user.id, "disaster.create", "disaster", disaster.id, disaster.name);
     res.status(201).json({ disaster });
   } catch (err) {
     console.error("createDisaster error:", err.message);
@@ -99,6 +101,7 @@ async function updateDisaster(req, res) {
   try {
     const disaster = await update(req.params.id, body);
     if (!disaster) return res.status(404).json({ error: "Disaster not found." });
+    await logAdminAction(req.user.id, "disaster.update", "disaster", disaster.id, disaster.name);
     res.json({ disaster });
   } catch (err) {
     console.error("updateDisaster error:", err.message);
@@ -111,6 +114,7 @@ async function deleteDisaster(req, res) {
   try {
     const deleted = await remove(req.params.id);
     if (!deleted) return res.status(404).json({ error: "Disaster not found." });
+    await logAdminAction(req.user.id, "disaster.delete", "disaster", req.params.id, null);
     res.json({ success: true });
   } catch (err) {
     console.error("deleteDisaster error:", err.message);

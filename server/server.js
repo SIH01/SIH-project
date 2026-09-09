@@ -1,26 +1,75 @@
 require("dotenv").config();
-
-if (!process.env.DATABASE_URL) {
-  console.error("DATABASE_URL is missing. Create server/.env from server/.env.example.");
-  process.exit(1);
-}
-
 const express = require("express");
 const cors = require("cors");
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
+
 const authRoutes = require("./routes/authRoutes");
 const disasterRoutes = require("./routes/disasterRoutes");
+const assistanceRoutes = require("./routes/assistanceRoutes");
+const organizationRoutes = require("./routes/organizationRoutes");
+const missingPersonRoutes = require("./routes/missingPersonRoutes");
+const campaignRoutes = require("./routes/campaignRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
+const adminRoutes = require("./routes/adminRoutes");
 
 const app = express();
 
+// Stage 11 — basic hardening. helmet sets sane security headers; the
+// general limiter covers the whole API, with a stricter one on auth
+// endpoints (the most common target for credential-stuffing/spam).
+// The default CSP only allows same-origin resources, which silently
+// blocks the map tiles, marker icons, and fonts this app loads from
+// other domains — so those are explicitly allow-listed here.
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        imgSrc: ["'self'", "data:", "*.tile.openstreetmap.org", "unpkg.com"],
+        styleSrc: ["'self'", "'unsafe-inline'", "fonts.googleapis.com"],
+        fontSrc: ["'self'", "fonts.gstatic.com"],
+        connectSrc: ["'self'", "nominatim.openstreetmap.org", "*.tile.openstreetmap.org"],
+        scriptSrc: ["'self'"],
+      },
+    },
+  })
+);
 app.use(cors());
 app.use(express.json());
 
+const generalLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 300 });
+const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20 });
+app.use("/api/", generalLimiter);
+app.use("/api/auth", authLimiter);
+
 app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", stage: 3 });
+  res.json({ status: "ok", stage: 12 });
 });
 
 app.use("/api/auth", authRoutes);
 app.use("/api/disasters", disasterRoutes);
+app.use("/api/assistance", assistanceRoutes);
+app.use("/api/organizations", organizationRoutes);
+app.use("/api/missing-persons", missingPersonRoutes);
+app.use("/api/campaigns", campaignRoutes);
+app.use("/api/notifications", notificationRoutes);
+app.use("/api/admin", adminRoutes);
+
+// Serve the built frontend (client/dist) from this same server/port, once
+// it exists. This means ONE Cloudflare Tunnel to this port covers both the
+// site and the API — no separate frontend tunnel, and no tunnel URL ever
+// needs to be hardcoded in the frontend (it calls a relative "/api" path).
+// Run "npm run build" in client/ to produce client/dist before this works;
+// in local dev, keep using "npm run dev" in client/ instead (Vite serves
+// it on 5174 and proxies /api to this server — see client/vite.config.js).
+const clientDistPath = path.join(__dirname, "..", "client", "dist");
+if (fs.existsSync(clientDistPath)) {
+  app.use(express.static(clientDistPath));
+  app.get(/^(?!\/api).*/, (req, res) => {
+    res.sendFile(path.join(clientDistPath, "index.html"));
+  });
+}
 
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
