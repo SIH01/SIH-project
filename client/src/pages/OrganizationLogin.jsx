@@ -9,6 +9,10 @@ export default function OrganizationLogin() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  function handleChange(event) {
+    setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
+  }
+
   function handleChange(e) {
     setForm({ ...form, [e.target.name]: e.target.value });
   }
@@ -46,6 +50,10 @@ export default function OrganizationLogin() {
           <input id="password" name="password" type="password" value={form.password} onChange={handleChange} required />
         </div>
         <button className="btn btn-awareness" type="submit" disabled={submitting} style={{ width: "100%" }}>
+          {submitting ? "Signing in…" : "Sign in"}
+        </button>
+      </form>
+      <p className="auth-switch"><Link to="/organizations">Back to organizations</Link></p>
           {submitting ? "Logging in…" : "Login as organization"}
         </button>
       </form>
