@@ -29,4 +29,15 @@ function requireRole(role) {
   };
 }
 
-module.exports = { requireAuth, requireRole };
+// Usage: requireAnyRole("admin", "organization") — for endpoints shared by
+// more than one role (e.g. viewing nearby assistance requests).
+function requireAnyRole(...roles) {
+  return (req, res, next) => {
+    if (!req.user || !roles.includes(req.user.role)) {
+      return res.status(403).json({ error: `Access requires one of: ${roles.join(", ")}.` });
+    }
+    next();
+  };
+}
+
+module.exports = { requireAuth, requireRole, requireAnyRole };
