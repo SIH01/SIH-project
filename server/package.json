@@ -6,7 +6,9 @@
   "type": "commonjs",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "import:earthquakes": "node scripts/importUsgsEarthquakes.js",
+    "import:eonet": "node scripts/importNasaEonetEvents.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

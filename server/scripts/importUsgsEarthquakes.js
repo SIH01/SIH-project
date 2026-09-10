@@ -3,8 +3,8 @@ const pool = require("../db/pool");
 
 // Bounding box roughly covering Assam & Northeast India — adjust if you
 // want a wider or narrower area.
-const BOUNDING_BOX = { minLat: 22, maxLat: 29, minLon: 88, maxLon: 97 };
-const MIN_MAGNITUDE = 5.0;
+const BOUNDING_BOX = { minLat: 6, maxLat: 37.5, minLon: 68, maxLon: 97.5 };
+const MIN_MAGNITUDE = process.env.MIN_MAGNITUDE ? parseFloat(process.env.MIN_MAGNITUDE) : 4.5;
 const START_DATE = "1900-01-01";
 const END_DATE = new Date().toISOString().slice(0, 10);
 

@@ -55,6 +55,7 @@ export default function Navbar() {
           {user && user.role === "organization" && (
             <>
               <NavLink to="/organization/dashboard" className={linkClass}>Org Dashboard</NavLink>
+              <NavLink to="/organization/requests" className={linkClass}>Nearby Requests</NavLink>
               <NavLink to="/organization/campaigns" className={linkClass}>Campaigns</NavLink>
             </>
           )}
