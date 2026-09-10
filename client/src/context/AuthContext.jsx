@@ -43,7 +43,7 @@ export function AuthProvider({ children }) {
   }
 
   async function organizationLogin(payload) {
-    const { data } = await api.post("/auth/organization-login", payload);
+    const { data } = await api.post("/org/login", payload);
     persist(data.token, data.user);
     return data.user;
   }
