@@ -3,7 +3,8 @@ const pool = require("../db/pool");
 const SELECT_FIELDS = `
   id, reporter_name, reporter_contact, disaster_id, person_name, age,
   last_known_location, date_last_seen, description, additional_information,
-  status, created_at, updated_at
+  status, findings, tips, escalation_status, escalation_notes,
+  managed_by_organization_id, managed_updated_at, created_at, updated_at
 `;
 
 async function getAll() {
@@ -49,4 +50,28 @@ async function updateStatus(id, status) {
   return rows[0] || null;
 }
 
-module.exports = { getAll, getById, create, updateStatus };
+async function getOrganizationQueue() {
+  const { rows } = await pool.query(
+    `select ${SELECT_FIELDS} from missing_person_reports
+     where status <> 'Closed' order by created_at desc`
+  );
+  return rows;
+}
+
+async function updateByOrganization(id, organizationId, data) {
+  const values = [data.status || null, data.findings ?? null, data.tips ?? null,
+    data.escalation_status || null, data.escalation_notes ?? null, organizationId, id];
+  const { rows } = await pool.query(
+    `update missing_person_reports set
+       status = coalesce($1, status), findings = coalesce($2, findings),
+       tips = coalesce($3, tips), escalation_status = coalesce($4, escalation_status),
+       escalation_notes = coalesce($5, escalation_notes),
+       managed_by_organization_id = coalesce(managed_by_organization_id, $6),
+       managed_updated_at = now(), updated_at = now()
+     where id = $7 and status <> 'Closed'
+     returning ${SELECT_FIELDS}`, values
+  );
+  return rows[0] || null;
+}
+
+module.exports = { getAll, getById, create, updateStatus, getOrganizationQueue, updateByOrganization };

@@ -95,9 +95,7 @@ async function organizationLogin(req, res) {
     const user = req.body.email ? await findByEmail(req.body.email) : null;
     if (!user || user.role !== "organization") return res.status(401).json({ error: "Invalid email or password." });
     const organization = await getByUserId(user.id);
-    if (!organization || organization.verification_status !== "Verified") {
-      return res.status(403).json({ error: "Your organization must be verified before portal access is enabled." });
-    }
+    if (!organization) return res.status(403).json({ error: "Organization profile not found." });
     return loginAs("organization", req, res, { scope: "organization_portal" });
   } catch (err) {
     console.error("organization login verification error:", err.message);

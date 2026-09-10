@@ -5,8 +5,8 @@ const { getByUserId, getById: getOrgById } = require("../models/organizationMode
 const { logAdminAction } = require("../utils/auditLog");
 const { notify } = require("../utils/notify");
 
-const VERIFICATION_STATUSES = ["Pending Verification", "Verified", "Rejected"];
-const STATUSES = ["Pending Verification", "Active", "Completed", "Rejected", "Suspended"];
+const VERIFICATION_STATUSES = ["Pending Verification", "Pending Review", "Verified", "Approved", "Rejected"];
+const STATUSES = ["Pending Verification", "Pending Review", "Active", "Approved", "Live", "Completed", "Rejected", "Suspended", "Closed"];
 
 function validateInput(body) {
   const errors = [];
@@ -102,8 +102,10 @@ async function verifyCampaign(req, res) {
 
     // A verification_status of "Verified" with no explicit status also
     // activates the campaign, since that's the normal approve-and-go-live path.
-    const nextVerification = verification_status || existing.verification_status;
-    const nextStatus = status || (verification_status === "Verified" ? "Active" : undefined);
+    const nextVerification = verification_status === "Approved" || status === "Approved" || status === "Live"
+      ? "Verified" : verification_status === "Pending Review" || status === "Pending Review"
+        ? "Pending Verification" : verification_status || existing.verification_status;
+    const nextStatus = status || (verification_status === "Verified" || verification_status === "Approved" ? "Active" : undefined);
 
     const campaign = await setVerification(req.params.id, nextVerification, nextStatus);
     await logAdminAction(req.user.id, "campaign.verify", "campaign", campaign.id, JSON.stringify({ verification_status, status }));

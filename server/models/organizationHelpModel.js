@@ -3,7 +3,8 @@ const { haversineDistanceKm } = require("../utils/haversine");
 
 const SELECT = `h.id, h.request_id, h.type, h.name, h.phone, h.email, h.location_text,
   h.latitude, h.longitude, h.description, h.urgency, h.status, h.claimed_by_org_id,
-  h.assigned_organization_id, h.internal_notes, h.attachments, h.created_at, h.updated_at,
+  h.assigned_organization_id, h.preferred_organization_id, h.internal_notes, h.attachments,
+  h.created_at, h.updated_at,
   assigned.name as assigned_organization_name, claimed.name as claimed_organization_name`;
 
 function normalize(value) {
@@ -30,21 +31,30 @@ async function loadRequests(organization, filters = {}) {
   if (filters.search) { values.push(`%${filters.search}%`); where.push(`(h.name ilike $${values.length} or h.description ilike $${values.length} or h.location_text ilike $${values.length})`); }
   const { rows } = await pool.query(`select ${SELECT} from help_requests h left join organizations assigned on assigned.id = h.assigned_organization_id left join organizations claimed on claimed.id = h.claimed_by_org_id where ${where.join(" and ")} order by case h.urgency when 'critical' then 1 when 'medium' then 2 when 'low' then 3 else 4 end, h.created_at desc`, values);
   const categories = organization.assistance_categories || [];
+  const directed = filters.directed === "true" || filters.directed === true;
   return rows.filter((request) => {
     const assigned = request.assigned_organization_id === organization.id;
+    const preferred = request.preferred_organization_id === organization.id;
     const matching = categoryMatches(request.type, categories) && regionMatches(request, organization);
-    const visible = assigned || matching;
+    // The portal queue intentionally includes every open request. A directed
+    // queue is available via ?directed=true for organization-specific work.
+    const visible = directed ? preferred || assigned : true;
     const claimedFilter = filters.claimed;
     const claimed = request.claimed_by_org_id != null;
     return visible && (!claimedFilter || (claimedFilter === "true" ? claimed : !claimed));
-  }).map((request) => ({ ...request, routing_reason: request.assigned_organization_id === organization.id ? "Assigned by admin" : `Auto-matched - you offer ${request.type}`, actionable: !request.claimed_by_org_id || request.claimed_by_org_id === organization.id }));
+  }).map((request) => ({ ...request, routing_reason: request.preferred_organization_id === organization.id ? "Directed to your organization" : request.assigned_organization_id === organization.id ? "Assigned by admin" : matchingReason(request, organization), actionable: !request.claimed_by_org_id || request.claimed_by_org_id === organization.id }));
+}
+
+function matchingReason(request, organization) {
+  return categoryMatches(request.type, organization.assistance_categories || []) && regionMatches(request, organization)
+    ? `Auto-matched - you offer ${request.type}` : "Open help request";
 }
 
 async function getById(id, organization) {
   const { rows } = await pool.query(`select ${SELECT} from help_requests h left join organizations assigned on assigned.id = h.assigned_organization_id left join organizations claimed on claimed.id = h.claimed_by_org_id where h.id = $1`, [id]);
   const request = rows[0];
   if (!request) return null;
-  const visible = request.assigned_organization_id === organization.id || (categoryMatches(request.type, organization.assistance_categories || []) && regionMatches(request, organization));
+  const visible = request.status !== "resolved" && request.status !== "closed";
   if (!visible) return null;
   const messages = await pool.query(`select id, sender_role, sender_user_id, body, attachment_url, created_at from organization_help_messages where help_request_id = $1 and organization_id = $2 order by created_at`, [id, organization.id]);
   return { ...request, routing_reason: request.assigned_organization_id === organization.id ? "Assigned by admin" : `Auto-matched - you offer ${request.type}`, actionable: !request.claimed_by_org_id || request.claimed_by_org_id === organization.id, messages: [{ id: `request-${request.id}`, sender_role: "citizen", body: request.description, created_at: request.created_at }, ...messages.rows] };

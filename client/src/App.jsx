@@ -1,5 +1,5 @@
 import React from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import Landing from "./pages/Landing.jsx";
@@ -33,11 +33,15 @@ import AdminActiveAlerts from "./pages/admin/AdminActiveAlerts.jsx";
 import AdminMissingPersons from "./pages/admin/AdminMissingPersons.jsx";
 import AdminCampaigns from "./pages/admin/AdminCampaigns.jsx";
 import AdminAuditLogs from "./pages/admin/AdminAuditLogs.jsx";
+import OrganizationLayout from "./pages/organization/OrganizationLayout.jsx";
+import OrganizationMissingPersons from "./pages/organization/OrganizationMissingPersons.jsx";
 
 export default function App() {
+  const location = useLocation();
+  const isOrganizationArea = location.pathname.startsWith("/organization/");
   return (
     <>
-      <Navbar />
+      {!isOrganizationArea && <Navbar />}
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/register" element={<Register />} />
@@ -70,10 +74,17 @@ export default function App() {
         <Route path="/admin/campaigns" element={<ProtectedRoute role="admin"><AdminCampaigns /></ProtectedRoute>} />
         <Route path="/admin/audit-logs" element={<ProtectedRoute role="admin"><AdminAuditLogs /></ProtectedRoute>} />
 
-        <Route path="/organization/dashboard" element={<ProtectedRoute role="organization"><OrganizationPortal /></ProtectedRoute>} />
-        <Route path="/org/dashboard" element={<ProtectedRoute role="organization"><OrganizationPortal /></ProtectedRoute>} />
-        <Route path="/organization/campaigns" element={<ProtectedRoute role="organization"><OrgCampaigns /></ProtectedRoute>} />
-        <Route path="/organization/requests" element={<ProtectedRoute role="organization"><OrganizationRequestMatching /></ProtectedRoute>} />
+        <Route path="/organization" element={<ProtectedRoute role="organization"><OrganizationLayout /></ProtectedRoute>}>
+          <Route index element={<OrganizationPortal />} />
+          <Route path="dashboard" element={<OrganizationPortal />} />
+          <Route path="requests" element={<OrganizationRequestMatching />} />
+          <Route path="campaigns" element={<OrgCampaigns />} />
+          <Route path="missing-persons" element={<OrganizationMissingPersons />} />
+          <Route path="profile" element={<OrganizationProfile />} />
+        </Route>
+        <Route path="/org/dashboard" element={<ProtectedRoute role="organization"><OrganizationLayout /></ProtectedRoute>}>
+          <Route index element={<OrganizationPortal />} />
+        </Route>
       </Routes>
     </>
   );

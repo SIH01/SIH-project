@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 const pool = require("../db/pool");
 const { findByEmail } = require("../models/userStore");
 const {
-  getVerified, getAll, getPending, getById, getByUserId, create, setVerificationStatus,
+  getVerified, getAll, getPending, getById, getByUserId, create, setVerificationStatus, submitProfileUpdate,
 } = require("../models/organizationModel");
 const { logAdminAction } = require("../utils/auditLog");
 const { notify } = require("../utils/notify");
@@ -89,7 +89,7 @@ async function register(req, res) {
 
     await client.query("COMMIT");
 
-    const token = jwt.sign({ id: user.id, role: user.role, email: user.email }, JWT_SECRET, { expiresIn: "8h" });
+    const token = jwt.sign({ id: user.id, role: user.role, email: user.email, scope: "organization_portal" }, JWT_SECRET, { expiresIn: "8h" });
     res.status(201).json({
       token,
       user: publicOrgUser(user),
@@ -161,6 +161,25 @@ async function getOrganizationById(req, res) {
   }
 }
 
+// Organization edits are queued for admin review rather than changing the
+// verified public profile immediately.
+async function updateMyOrganization(req, res) {
+  const allowed = ["name", "type", "description", "website", "email", "phone", "address",
+    "operating_areas", "latitude", "longitude", "assistance_categories",
+    "documents", "representative_name", "representative_contact"];
+  const changes = Object.fromEntries(Object.entries(req.body || {}).filter(([key]) => allowed.includes(key)));
+  if (!Object.keys(changes).length) return res.status(400).json({ error: "Provide at least one profile field to update." });
+  try {
+    const current = await getByUserId(req.user.id);
+    if (!current) return res.status(404).json({ error: "Organization profile not found." });
+    const organization = await submitProfileUpdate(current.id, changes);
+    res.json({ organization, pending_review: true });
+  } catch (err) {
+    console.error("updateMyOrganization error:", err.message);
+    res.status(500).json({ error: "Could not submit organization profile update." });
+  }
+}
+
 // PUT /api/organizations/:id/verify — admin only. Approve / reject / suspend / reactivate.
 async function verifyOrganization(req, res) {
   const verification_status = req.body.verification_status ||
@@ -188,6 +207,6 @@ async function verifyOrganization(req, res) {
 }
 
 module.exports = {
-  register, listVerified, listAll, listPending, getMyOrganization, getOrganizationById, verifyOrganization,
+  register, listVerified, listAll, listPending, getMyOrganization, updateMyOrganization, getOrganizationById, verifyOrganization,
   ORG_TYPES, ASSISTANCE_CATEGORIES, VERIFICATION_STATUSES,
 };

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { api } from "../../services/api";
 
-const EMPTY_FORM = { title: "", description: "", target_amount: "", purpose: "", location_name: "" };
+const EMPTY_FORM = { title: "", description: "", target_amount: "", purpose: "", location_name: "", end_date: "", supporting_documents: "" };
 const textareaStyle = { padding: "0.65rem 0.8rem", border: "1px solid var(--line)", borderRadius: "4px", fontFamily: "var(--font-body)", fontSize: "1rem", width: "100%" };
 
 export default function OrgCampaigns() {
@@ -57,12 +57,15 @@ export default function OrgCampaigns() {
   }
 
   return (
-    <div className="dashboard-shell">
-      <div className="dashboard-card">
-        <h1>Create a Fundraising Campaign</h1>
+    <div className="org-page">
+      <header className="org-page-header">
+        <div><p className="eyebrow">Campaign review</p><h1>Fundraising campaigns</h1><p>Create response campaigns and track their review state before they are published to the public fundraising directory.</p></div>
+        <span className="org-header-chip">Admin approval required</span>
+      </header>
+      <div className="org-panel" style={{ padding: "1.5rem", marginBottom: "1.25rem" }}>
+        <h2>Create a new campaign</h2>
         <p style={{ color: "#5c6673" }}>
-          Your organization must be Verified before a campaign can go public — an admin will review this
-          before it appears on the public Fundraising page.
+          New campaigns start as <strong>Pending Review</strong> and remain private until an admin approves them.
         </p>
         {error && <div className="error-banner">{error}</div>}
         <form onSubmit={handleCreate}>
@@ -88,12 +91,22 @@ export default function OrgCampaigns() {
             <label>Location</label>
             <input value={form.location_name} onChange={(e) => set("location_name", e.target.value)} placeholder="e.g. Silchar, Assam" />
           </div>
+          <div style={{ display: "flex", gap: "1rem" }}>
+            <div className="field" style={{ flex: 1 }}>
+              <label>Campaign end date</label>
+              <input type="date" value={form.end_date} onChange={(e) => set("end_date", e.target.value)} />
+            </div>
+            <div className="field" style={{ flex: 2 }}>
+              <label>Supporting documents or image URLs</label>
+              <input value={form.supporting_documents} onChange={(e) => set("supporting_documents", e.target.value)} placeholder="Link to verification documents or campaign media" />
+            </div>
+          </div>
           <button className="btn btn-awareness" type="submit" disabled={creating}>{creating ? "Creating…" : "Create Campaign"}</button>
         </form>
       </div>
 
-      <div className="dashboard-card">
-        <h2>Your Campaigns</h2>
+      <div className="org-panel" style={{ padding: "1.5rem" }}>
+        <div className="org-panel-heading" style={{ padding: 0, marginBottom: "1rem" }}><div><p className="eyebrow">Portfolio</p><h2>Your campaigns</h2></div><span className="dashboard-muted">{campaigns.length} total</span></div>
         {loading ? (
           <p>Loading…</p>
         ) : campaigns.length === 0 ? (
@@ -104,14 +117,14 @@ export default function OrgCampaigns() {
             return (
               <div key={c.id} style={{ padding: "1rem 0", borderBottom: "1px solid var(--line)" }}>
                 <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.4rem" }}>
-                  <span className="badge badge-awareness">{c.verification_status}</span>
-                  <span className="badge badge-relief">{c.status}</span>
+                  <span className="status-pill status-pending">{c.verification_status || c.status}</span>
+                  <span className="status-pill status-in-progress">{c.status}</span>
                 </div>
                 <strong>{c.title}</strong>
                 <div style={{ fontSize: "0.85rem", color: "#5c6673", margin: "0.3rem 0" }}>
                   ₹{Number(c.amount_raised).toLocaleString("en-IN")} / ₹{Number(c.target_amount).toLocaleString("en-IN")} ({pct}%)
                 </div>
-                {c.status === "Active" && (
+                {["Active", "Approved", "Live"].includes(c.status) && (
                   <div style={{ display: "flex", gap: "0.5rem" }}>
                     <input
                       type="number" min="1" placeholder="Amount received"

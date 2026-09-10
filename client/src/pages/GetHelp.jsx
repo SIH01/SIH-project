@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../services/api";
 
@@ -7,7 +7,7 @@ const HELP_TYPES = [
   ["mental_health", "Mental Health", "◌"], ["missing_person", "Missing Person", "⌕"],
   ["financial", "Financial", "¤"], ["other", "Other", "•••"],
 ];
-const EMPTY_FORM = { type: "food", name: "", phone: "", email: "", locationText: "", description: "", urgency: "medium" };
+const EMPTY_FORM = { type: "food", name: "", phone: "", email: "", locationText: "", description: "", urgency: "medium", preferred_organization_id: "" };
 
 function fileToDataUrl(file) {
   return new Promise((resolve, reject) => {
@@ -26,6 +26,11 @@ export default function GetHelp() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [confirmation, setConfirmation] = useState(null);
+  const [organizations, setOrganizations] = useState([]);
+
+  useEffect(() => {
+    api.get("/organizations").then(({ data }) => setOrganizations(data.organizations || [])).catch(() => {});
+  }, []);
 
   function set(key, value) { setForm((current) => ({ ...current, [key]: value })); }
 
@@ -56,7 +61,8 @@ export default function GetHelp() {
       const { data } = await api.post("/help-requests", {
         type: form.type, name: form.name, phone: form.phone, email: form.email,
         location: { text: form.locationText, lat: coords?.lat ?? null, lng: coords?.lng ?? null },
-        description: form.description, urgency: form.urgency, attachments: previews.map((preview) => preview.url),
+        description: form.description, urgency: form.urgency, preferred_organization_id: form.preferred_organization_id || null,
+        attachments: previews.map((preview) => preview.url),
       });
       setConfirmation(data.requestId || data.request?.request_id);
     } catch (err) { setError(err.response?.data?.error || "Could not submit your request. Please try again."); }
@@ -81,6 +87,7 @@ export default function GetHelp() {
           <p className="help-hint">At least one of phone or email is required so we can follow up.</p>
           <div className="help-field"><label htmlFor="help-location">Location</label><input id="help-location" placeholder="e.g. Ward 4, Silchar, Assam" value={form.locationText} onChange={(e) => set("locationText", e.target.value)} /><button type="button" className="location-button" onClick={useMyLocation} disabled={locating}>{locating ? "Locating..." : coords ? "📍 Location attached" : "📍 Attach my current location"}</button>{coords && <small className="coords-note">Coordinates attached: {coords.lat.toFixed(4)}, {coords.lng.toFixed(4)}</small>}</div>
           <div className="help-field"><label htmlFor="help-description">Describe what you need</label><textarea id="help-description" rows="5" value={form.description} onChange={(e) => set("description", e.target.value)} required /><small className="help-hint">Please include useful details for the response team.</small></div>
+          {organizations.length > 0 && <div className="help-field"><label htmlFor="help-organization">Preferred response organization (optional)</label><select id="help-organization" value={form.preferred_organization_id} onChange={(e) => set("preferred_organization_id", e.target.value)}><option value="">Let DisasterShield match my request</option>{organizations.map((organization) => <option key={organization.id} value={organization.id}>{organization.name}</option>)}</select><small className="help-hint">This sends the request to that organization while keeping it in the general response pool.</small></div>}
           <div className="help-field"><label htmlFor="help-files">Add a photo - optional</label><input id="help-files" type="file" accept="image/*" multiple onChange={handleFiles} /><div className="file-previews">{previews.map((preview, index) => <div className="file-preview" key={preview.name}><img src={preview.url} alt={preview.name} /><button type="button" onClick={() => removeFile(index)} aria-label={`Remove ${preview.name}`}>×</button></div>)}</div></div>
           <button className="btn submit-help-button" type="submit" disabled={submitting}>{submitting ? "Submitting..." : "Submit request"}</button>
         </form>

@@ -14,6 +14,7 @@ function validate(body) {
   if (!URGENCIES.includes(body.urgency || "medium")) errors.push("Choose a valid urgency.");
   if (body.location?.lat != null && (Number.isNaN(Number(body.location.lat)) || Number(body.location.lat) < -90 || Number(body.location.lat) > 90)) errors.push("Latitude is invalid.");
   if (body.location?.lng != null && (Number.isNaN(Number(body.location.lng)) || Number(body.location.lng) < -180 || Number(body.location.lng) > 180)) errors.push("Longitude is invalid.");
+  if (body.preferred_organization_id != null && (!Number.isInteger(Number(body.preferred_organization_id)) || Number(body.preferred_organization_id) <= 0)) errors.push("Preferred organization is invalid.");
   return errors;
 }
 

@@ -1,7 +1,9 @@
-const { getAll, getById, create, updateStatus } = require("../models/missingPersonModel");
+const { getAll, getById, create, updateStatus, getOrganizationQueue, updateByOrganization } = require("../models/missingPersonModel");
+const { getByUserId } = require("../models/organizationModel");
 const { logAdminAction } = require("../utils/auditLog");
 
 const STATUSES = ["Reported", "Under Review", "Searching", "Located", "Closed"];
+const ESCALATION_STATUSES = ["none", "escalated", "resolved"];
 
 function validateInput(body) {
   const errors = [];
@@ -72,4 +74,57 @@ async function updateReport(req, res) {
   }
 }
 
-module.exports = { createReport, listReports, getReportById, updateReport, STATUSES };
+async function verifiedOrganization(req, res) {
+  const organization = await getByUserId(req.user.id);
+  if (!organization || organization.verification_status !== "Verified") {
+    res.status(403).json({ error: "A verified organization account is required." });
+    return null;
+  }
+  return organization;
+}
+
+async function listOrganizationReports(req, res) {
+  try {
+    const organization = await verifiedOrganization(req, res);
+    if (!organization) return;
+    res.json({ reports: await getOrganizationQueue() });
+  } catch (err) {
+    console.error("listOrganizationReports error:", err.message);
+    res.status(500).json({ error: "Could not load missing-person cases." });
+  }
+}
+
+async function getOrganizationReport(req, res) {
+  try {
+    const organization = await verifiedOrganization(req, res);
+    if (!organization) return;
+    const report = await getById(req.params.id);
+    if (!report || report.status === "Closed") return res.status(404).json({ error: "Open report not found." });
+    res.json({ report });
+  } catch (err) {
+    console.error("getOrganizationReport error:", err.message);
+    res.status(500).json({ error: "Could not load missing-person case." });
+  }
+}
+
+async function updateOrganizationReport(req, res) {
+  const { status, escalation_status } = req.body || {};
+  if (status && !STATUSES.includes(status)) return res.status(400).json({ error: "Invalid missing-person status." });
+  if (escalation_status && !ESCALATION_STATUSES.includes(escalation_status)) return res.status(400).json({ error: "Invalid escalation status." });
+  if (status === "Closed") return res.status(403).json({ error: "Organizations cannot close missing-person cases." });
+  try {
+    const organization = await verifiedOrganization(req, res);
+    if (!organization) return;
+    const report = await updateByOrganization(req.params.id, organization.id, req.body);
+    if (!report) return res.status(404).json({ error: "Open report not found." });
+    res.json({ report });
+  } catch (err) {
+    console.error("updateOrganizationReport error:", err.message);
+    res.status(500).json({ error: "Could not update missing-person case." });
+  }
+}
+
+module.exports = {
+  createReport, listReports, getReportById, updateReport,
+  listOrganizationReports, getOrganizationReport, updateOrganizationReport, STATUSES,
+};

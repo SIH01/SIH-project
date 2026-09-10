@@ -4,7 +4,7 @@ const SELECT_FIELDS = `
   id, user_id, name, type, description, website, email, phone, address,
   operating_areas, latitude, longitude, assistance_categories,
   verification_status, documents, representative_name, representative_contact,
-  created_at, verified_at
+  pending_profile_changes, profile_update_status, created_at, verified_at
 `;
 
 // Public directory — verified organizations only.
@@ -72,4 +72,14 @@ async function setVerificationStatus(id, status) {
   return rows[0] || null;
 }
 
-module.exports = { getVerified, getAll, getPending, getById, getByUserId, create, setVerificationStatus };
+async function submitProfileUpdate(id, changes) {
+  const { rows } = await pool.query(
+    `update organizations
+       set pending_profile_changes = $1::jsonb, profile_update_status = 'Pending Review'
+     where id = $2 returning ${SELECT_FIELDS}`,
+    [JSON.stringify(changes), id]
+  );
+  return rows[0] || null;
+}
+
+module.exports = { getVerified, getAll, getPending, getById, getByUserId, create, setVerificationStatus, submitProfileUpdate };

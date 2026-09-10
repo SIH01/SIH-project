@@ -1,17 +1,65 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../services/api";
-import "./contactPortal.css";
 
-function cls(value) { return String(value || "").toLowerCase().replace(" ", "-"); }
+const EMPTY_STATS = { total: 0, pending: 0, in_progress: 0, resolved: 0 };
+
+function label(value) {
+  return String(value || "").replaceAll("_", " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 export default function OrganizationPortal() {
-  const [requests, setRequests] = useState([]); const [selected, setSelected] = useState(null); const [filter, setFilter] = useState({ status: "", urgency: "", category: "" }); const [reply, setReply] = useState(""); const [error, setError] = useState("");
-  async function load() { try { const { data } = await api.get("/org/requests", { params: filter }); setRequests(data.requests || []); if (selected) { const current = await api.get(`/org/requests/${selected.id}`); setSelected(current.data.request); } } catch (err) { setError(err.response?.data?.error || "Could not load the organization inbox."); } }
-  useEffect(() => { load(); }, [filter.status, filter.urgency, filter.type, filter.search]);
-  useEffect(() => { const timer = setInterval(load, 15000); return () => clearInterval(timer); }, [filter.status, filter.urgency, filter.type, filter.search, selected?.id]);
-  async function send(event) { event.preventDefault(); if (!reply.trim()) return; try { const { data } = await api.post(`/org/requests/${selected.id}/messages`, { body: reply }); setSelected(data.request); setReply(""); load(); } catch (err) { setError(err.response?.data?.error || "Could not send reply."); } }
-  async function setStatus(status) { try { const { data } = await api.patch(`/org/requests/${selected.id}/status`, { status }); setSelected(data.request); load(); } catch (err) { setError(err.response?.data?.error || "Could not update status."); } }
-  async function claim() { try { const { data } = await api.post(`/org/requests/${selected.id}/claim`); setSelected(data.request); load(); } catch (err) { setError(err.response?.data?.error || "Could not claim request."); } }
-  const resolved = requests.filter((item) => item.status === "resolved").length; const pending = requests.filter((item) => item.status === "new" || item.status === "in_review").length;
-  return <main className="portal-shell"><aside className="portal-sidebar"><Link to="/" className="portal-brand">DisasterShield <span>ORG PORTAL</span></Link><nav><a className="portal-nav-active" href="#overview">Overview</a><a href="#inbox">Incoming requests <b>{pending}</b></a><a href="#profile">Organization profile</a></nav><div className="portal-sidebar-footer"><Link to="/organizations">View public directory</Link><Link to="/organization/requests">Nearby requests</Link></div></aside><section className="portal-main"><header className="portal-topbar"><div><p className="eyebrow">Verified response desk</p><h1>Organization dashboard</h1></div><span className="verified-badge">✓ Admin verified</span></header>{error && <div className="error-banner">{error}</div>}<section id="overview" className="portal-stats"><div><small>Total requests</small><strong>{requests.length}</strong><span>Matching and assigned</span></div><div><small>Needs attention</small><strong>{pending}</strong><span>Waiting for response</span></div><div><small>In progress</small><strong>{requests.filter((item) => item.status === "in_progress" || item.status === "in_review").length}</strong><span>Active conversations</span></div><div><small>Resolved</small><strong>{resolved}</strong><span>Closed with care</span></div></section><section id="inbox" className="portal-inbox"><div className="inbox-toolbar"><div><p className="eyebrow">Response queue</p><h2>Incoming Get Help requests</h2></div><div className="filter-row"><select aria-label="Filter by urgency" value={filter.urgency} onChange={(e) => setFilter({ ...filter, urgency: e.target.value })}><option value="">All urgency</option><option value="critical">Critical</option><option value="medium">Medium</option><option value="low">Low</option></select><select aria-label="Filter by status" value={filter.status} onChange={(e) => setFilter({ ...filter, status: e.target.value })}><option value="">All status</option><option value="new">New</option><option value="in_review">Seen</option><option value="in_progress">In progress</option><option value="resolved">Resolved</option></select><select aria-label="Filter by category" value={filter.type} onChange={(e) => setFilter({ ...filter, type: e.target.value })}><option value="">All categories</option>{["food", "shelter", "medical", "mental_health", "missing_person", "financial", "other"].map((item) => <option key={item}>{item}</option>)}</select></div></div><div className="portal-content"><div className="portal-request-list">{requests.map((request) => <button className={`portal-request-row ${selected?.id === request.id ? "selected" : ""}`} key={request.id} onClick={() => setSelected(request)}><div><span className={`urgency-badge urgency-${cls(request.urgency)}`}>{request.urgency}</span><strong>{request.name}</strong><small>{request.type} · {request.location_text || "Location not shared"}</small><small>{request.routing_reason}</small></div><span className={`status-pill status-${cls(request.status)}`}>{request.status}</span></button>)}{requests.length === 0 && <div className="empty-state"><h2>Inbox is clear</h2><p>New matching or admin-assigned requests will appear here.</p></div>}</div><div className="portal-thread">{selected ? <><div className="thread-header"><div><p className="eyebrow">{selected.request_id} · {selected.type}</p><h2>{selected.name}</h2><p>{selected.phone || selected.email || "No direct contact supplied"} · {selected.location_text || "No location supplied"}</p><p>{selected.routing_reason}{selected.claimed_organization_name ? ` · Claimed by ${selected.claimed_organization_name}` : " · Unclaimed"}</p></div><div>{selected.actionable && !selected.claimed_by_org_id && <button className="btn btn-awareness" onClick={claim}>Claim this request</button>}<select value={selected.status} onChange={(e) => setStatus(e.target.value)} aria-label="Update request status">{["new", "in_review", "in_progress", "resolved"].map((item) => <option key={item} value={item}>{item.replace("in_review", "seen").replace("in_progress", "in progress")}</option>)}</select></div></div><div className="message-stream">{selected.messages?.map((item) => <div className={`message-bubble ${item.sender_role === "organization" ? "from-org" : "from-citizen"}`} key={item.id}><small>{item.sender_role === "organization" ? "Your team" : selected.name}</small><p>{item.body}</p><time>{new Date(item.created_at).toLocaleString()}</time></div>)}</div><form className="reply-box" onSubmit={send}><textarea value={reply} onChange={(e) => setReply(e.target.value)} rows="3" placeholder="Write a clear, reassuring reply…" /><button className="btn btn-awareness" disabled={!selected.actionable}>Reply to requester</button></form></> : <div className="empty-state"><h2>Choose a request</h2><p>Open a request to review details and reply.</p></div>}</div></div></section></section></main>;
+  const [organization, setOrganization] = useState(null);
+  const [stats, setStats] = useState(EMPTY_STATS);
+  const [campaigns, setCampaigns] = useState([]);
+  const [requests, setRequests] = useState([]);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api.get("/organizations/me").then(async ({ data: org }) => {
+      setOrganization(org.organization);
+      if (org.organization.verification_status !== "Verified") return;
+      const [dashboard, queue, campaignData] = await Promise.all([
+        api.get("/org/dashboard/stats"),
+        api.get("/org/requests", { params: { limit: 5 } }),
+        api.get("/campaigns/mine"),
+      ]);
+      setStats({ ...EMPTY_STATS, ...(dashboard.data.stats || {}) });
+      setRequests(queue.data.requests || []);
+      setCampaigns(campaignData.data.campaigns || []);
+    }).catch((err) => {
+      setError(err.response?.data?.error || "Could not load organization overview.");
+    }).finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <div className="org-page"><div className="org-panel org-loading">Loading response console…</div></div>;
+
+  if (organization && organization.verification_status !== "Verified") {
+    return <div className="org-page"><div className="org-pending-card"><span className="org-pending-icon">!</span><p className="eyebrow">Access is limited</p><h1>Your organization is under review</h1><p>DisasterShield is reviewing your registration. The response queue, case management, and campaign publishing tools will unlock after approval.</p><Link className="btn btn-outline-ink" to="/organization/profile">Review organization profile</Link></div></div>;
+  }
+
+  return (
+    <div className="org-page">
+      <header className="org-page-header">
+        <div><p className="eyebrow">Operations overview</p><h1>Good to see you, {organization?.name || "response team"}</h1><p>Monitor incoming needs, coordinate cases, and keep your public campaigns moving.</p></div>
+        <span className="org-header-chip">Live workspace</span>
+      </header>
+      {error && <div className="error-banner">{error}</div>}
+      <section className="org-stat-grid">
+        {[["Total requests", stats.total, "All matching and directed requests"], ["Needs attention", stats.pending, "Awaiting first response"], ["In progress", stats.in_progress, "Active response work"], ["Resolved", stats.resolved, "Closed with care"]].map(([name, value, note]) => <div className="org-stat-card" key={name}><small>{name}</small><strong>{value}</strong><span>{note}</span></div>)}
+      </section>
+      <section className="org-overview-grid">
+        <div className="org-panel">
+          <div className="org-panel-heading"><div><p className="eyebrow">Response queue</p><h2>Latest requests</h2></div><Link to="/organization/requests">Open queue →</Link></div>
+          {requests.length === 0 ? <div className="empty-state"><h2>Queue is clear</h2><p>New matching and directed requests will appear here.</p></div> : <div className="org-compact-list">{requests.map((request) => <Link to="/organization/requests" className="org-compact-row" key={request.id}><div><strong>{request.name}</strong><small>{label(request.type)} · {request.location_text || "Location not shared"}</small></div><span className={`status-pill status-${String(request.status).replaceAll("_", "-")}`}>{label(request.status)}</span></Link>)}</div>}
+        </div>
+        <div className="org-panel">
+          <div className="org-panel-heading"><div><p className="eyebrow">Campaign review</p><h2>Fundraising health</h2></div><Link to="/organization/campaigns">Manage campaigns →</Link></div>
+          <div className="org-campaign-summary"><strong>{campaigns.length}</strong><span>Total campaigns</span><div><b>{campaigns.filter((campaign) => ["Approved", "Active", "Verified"].includes(campaign.status) || ["Approved", "Verified"].includes(campaign.verification_status)).length}</b> approved or live</div><div><b>{campaigns.filter((campaign) => ["Pending Review", "Pending Verification"].includes(campaign.status) || ["Pending Review", "Pending Verification"].includes(campaign.verification_status)).length}</b> pending review</div></div>
+        </div>
+      </section>
+      <section className="org-callout"><div><p className="eyebrow">Coordination desk</p><h2>Keep every response accountable.</h2><p>Use case management to share verified findings with admins and escalate urgent missing-person reports.</p></div><Link className="btn btn-awareness" to="/organization/missing-persons">Open case management</Link></section>
+    </div>
+  );
 }

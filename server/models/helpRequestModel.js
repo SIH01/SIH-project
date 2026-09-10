@@ -3,7 +3,7 @@ const pool = require("../db/pool");
 const SELECT_FIELDS = `
   h.id, h.request_id, h.type, h.name, h.phone, h.email, h.location_text,
   h.latitude, h.longitude, h.description, h.urgency, h.status,
-  h.assigned_to, h.attachments, h.created_at, h.updated_at,
+  h.assigned_to, h.preferred_organization_id, h.attachments, h.created_at, h.updated_at,
   u.name as assigned_name, u.role as assigned_role
 `;
 
@@ -13,10 +13,12 @@ async function create(data) {
     await client.query("BEGIN");
     const inserted = await client.query(
       `insert into help_requests
-        (type, name, phone, email, location_text, latitude, longitude, description, urgency, attachments)
-       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) returning id`,
+        (type, name, phone, email, location_text, latitude, longitude, description, urgency, attachments,
+         preferred_organization_id)
+       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) returning id`,
       [data.type, data.name, data.phone || null, data.email || null, data.location?.text || null,
-        data.location?.lat ?? null, data.location?.lng ?? null, data.description, data.urgency || "medium", data.attachments || []]
+        data.location?.lat ?? null, data.location?.lng ?? null, data.description, data.urgency || "medium",
+        data.attachments || [], data.preferred_organization_id || null]
     );
     const requestId = `GH-${String(2000 + inserted.rows[0].id).padStart(4, "0")}`;
     await client.query("update help_requests set request_id = $1 where id = $2", [requestId, inserted.rows[0].id]);
