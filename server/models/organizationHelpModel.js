@@ -23,10 +23,10 @@ function regionMatches(request, organization) {
 
 async function loadRequests(organization, filters = {}) {
   const values = [];
-  const where = ["h.status not in ('resolved', 'closed')"];
+  const where = ["1 = 1"];
   if (filters.status) { values.push(filters.status); where.push(`h.status = $${values.length}`); }
   if (filters.urgency) { values.push(filters.urgency); where.push(`h.urgency = $${values.length}`); }
-  if (filters.type) { values.push(filters.type); where.push(`h.type = $${values.length}`); }
+  if (filters.type || filters.category) { values.push(filters.type || filters.category); where.push(`h.type = $${values.length}`); }
   if (filters.search) { values.push(`%${filters.search}%`); where.push(`(h.name ilike $${values.length} or h.description ilike $${values.length} or h.location_text ilike $${values.length})`); }
   const { rows } = await pool.query(`select ${SELECT} from help_requests h left join organizations assigned on assigned.id = h.assigned_organization_id left join organizations claimed on claimed.id = h.claimed_by_org_id where ${where.join(" and ")} order by case h.urgency when 'critical' then 1 when 'medium' then 2 when 'low' then 3 else 4 end, h.created_at desc`, values);
   const categories = organization.assistance_categories || [];
@@ -36,7 +36,9 @@ async function loadRequests(organization, filters = {}) {
     const visible = assigned || matching;
     const claimedFilter = filters.claimed;
     const claimed = request.claimed_by_org_id != null;
-    return visible && (!claimedFilter || (claimedFilter === "true" ? claimed : !claimed));
+    const assignedFilter = filters.assigned;
+    const assignedToUs = request.assigned_organization_id === organization.id;
+    return visible && (!claimedFilter || (claimedFilter === "true" ? claimed : !claimed)) && (!assignedFilter || (assignedFilter === "true" ? assignedToUs : !assignedToUs));
   }).map((request) => ({ ...request, routing_reason: request.assigned_organization_id === organization.id ? "Assigned by admin" : `Auto-matched - you offer ${request.type}`, actionable: !request.claimed_by_org_id || request.claimed_by_org_id === organization.id }));
 }
 

@@ -49,4 +49,30 @@ async function updateStatus(id, status) {
   return rows[0] || null;
 }
 
-module.exports = { getAll, getById, create, updateStatus };
+async function getForOrganization(organization) {
+  const { rows } = await pool.query(
+    `select ${SELECT_FIELDS} from missing_person_reports
+     where status <> 'Closed' order by created_at desc`
+  );
+  return rows;
+}
+
+async function addOrganizationUpdate(reportId, organizationId, userId, body) {
+  const { rows } = await pool.query(
+    `insert into missing_person_org_updates (report_id, organization_id, user_id, body)
+     values ($1, $2, $3, $4) returning id, report_id, organization_id, body, created_at`,
+    [reportId, organizationId, userId, body]
+  );
+  return rows[0];
+}
+
+async function escalate(reportId, organizationId) {
+  const { rows } = await pool.query(
+    `update missing_person_reports set status = 'Under Review', updated_at = now()
+     where id = $1 and status <> 'Closed' returning ${SELECT_FIELDS}`,
+    [reportId]
+  );
+  return rows[0] || null;
+}
+
+module.exports = { getAll, getById, create, updateStatus, getForOrganization, addOrganizationUpdate, escalate };
