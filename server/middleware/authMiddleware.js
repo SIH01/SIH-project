@@ -30,6 +30,13 @@ function requireRole(role) {
   };
 }
 
+function requireOrgPortal(req, res, next) {
+  if (!req.user || req.user.role !== "organization" || req.user.scope !== "organization_portal") {
+    return res.status(403).json({ error: "Verified organization portal access required." });
+  }
+  next();
+}
+
 // Usage: requireAnyRole("admin", "organization") — for endpoints shared by
 // more than one role (e.g. viewing nearby assistance requests).
 function requireAnyRole(...roles) {
@@ -61,4 +68,4 @@ async function requireApprovedOrg(req, res, next) {
   }
 }
 
-module.exports = { requireAuth, requireRole, requireAnyRole, requireAdmin, requireApprovedOrg };
+module.exports = { requireAuth, requireRole, requireOrgPortal, requireAnyRole, requireAdmin, requireApprovedOrg };

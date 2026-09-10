@@ -11,6 +11,10 @@ import DisasterMap from "./pages/DisasterMap.jsx";
 import GetHelp from "./pages/GetHelp.jsx";
 import Organizations from "./pages/Organizations.jsx";
 import OrganizationLogin from "./pages/OrganizationLogin.jsx";
+import ContactOrganization from "./pages/ContactOrganization.jsx";
+import MyRequests from "./pages/MyRequests.jsx";
+import OrganizationPortal from "./pages/OrganizationPortal.jsx";
+import OrganizationProfile from "./pages/OrganizationProfile.jsx";
 import RegisterOrganization from "./pages/RegisterOrganization.jsx";
 import DisasterDetail from "./pages/DisasterDetail.jsx";
 import MissingPersonReport from "./pages/MissingPersonReport.jsx";
@@ -48,6 +52,10 @@ export default function App() {
         <Route path="/organizations" element={<Organizations />} />
         <Route path="/organizations/register" element={<RegisterOrganization />} />
         <Route path="/organizations/login" element={<OrganizationLogin />} />
+        <Route path="/org/login" element={<OrganizationLogin />} />
+        <Route path="/organizations/:id/contact" element={<ContactOrganization />} />
+        <Route path="/organizations/:id" element={<OrganizationProfile />} />
+        <Route path="/my-requests" element={<MyRequests />} />
 
         <Route path="/admin/dashboard" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
         <Route path="/admin/disasters" element={<ProtectedRoute role="admin"><AdminDisasterList /></ProtectedRoute>} />
@@ -62,7 +70,8 @@ export default function App() {
         <Route path="/admin/campaigns" element={<ProtectedRoute role="admin"><AdminCampaigns /></ProtectedRoute>} />
         <Route path="/admin/audit-logs" element={<ProtectedRoute role="admin"><AdminAuditLogs /></ProtectedRoute>} />
 
-        <Route path="/organization/dashboard" element={<ProtectedRoute role="organization"><OrgShelterManager /></ProtectedRoute>} />
+        <Route path="/organization/dashboard" element={<ProtectedRoute role="organization"><OrganizationPortal /></ProtectedRoute>} />
+        <Route path="/org/dashboard" element={<ProtectedRoute role="organization"><OrganizationPortal /></ProtectedRoute>} />
         <Route path="/organization/campaigns" element={<ProtectedRoute role="organization"><OrgCampaigns /></ProtectedRoute>} />
         <Route path="/organization/requests" element={<ProtectedRoute role="organization"><OrganizationRequestMatching /></ProtectedRoute>} />
       </Routes>

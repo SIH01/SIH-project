@@ -1,0 +1,17 @@
+const model = require("../models/organizationHelpModel");
+const { getByUserId } = require("../models/organizationModel");
+const STATUSES = ["new", "in_review", "in_progress", "resolved", "closed"];
+
+async function verifiedOrg(req, res) {
+  const organization = await getByUserId(req.user.id);
+  if (!organization || organization.verification_status !== "Verified") { res.status(403).json({ error: "A verified organization account is required." }); return null; }
+  return organization;
+}
+async function stats(req, res) { try { const org = await verifiedOrg(req, res); if (org) res.json({ stats: await model.stats(org) }); } catch (error) { res.status(500).json({ error: "Could not load dashboard stats." }); } }
+async function list(req, res) { try { const org = await verifiedOrg(req, res); if (org) res.json({ requests: await model.loadRequests(org, req.query) }); } catch (error) { res.status(500).json({ error: "Could not load organization requests." }); } }
+async function detail(req, res) { try { const org = await verifiedOrg(req, res); if (!org) return; const request = await model.getById(req.params.id, org); if (!request) return res.status(404).json({ error: "Request not found." }); res.json({ request }); } catch (error) { res.status(500).json({ error: "Could not load request details." }); } }
+async function claim(req, res) { try { const org = await verifiedOrg(req, res); if (!org) return; const claimed = await model.claim(req.params.id, org.id); if (!claimed) return res.status(409).json({ error: "This request is already claimed by another organization." }); res.json({ request: await model.getById(req.params.id, org) }); } catch (error) { res.status(500).json({ error: "Could not claim request." }); } }
+async function message(req, res) { if (!req.body?.body?.trim()) return res.status(400).json({ error: "Message cannot be empty." }); try { const org = await verifiedOrg(req, res); if (!org) return; const request = await model.addMessage(req.params.id, org.id, req.user.id, req.body.body.trim(), req.body.attachment_url); if (!request) return res.status(404).json({ error: "Request is unavailable or claimed by another organization." }); res.status(201).json({ request }); } catch (error) { res.status(500).json({ error: "Could not send message." }); } }
+async function status(req, res) { if (!STATUSES.includes(req.body?.status)) return res.status(400).json({ error: "Invalid request status." }); try { const org = await verifiedOrg(req, res); if (!org) return; const request = await model.getById(req.params.id, org); if (!request || !request.actionable) return res.status(404).json({ error: "Request is unavailable or claimed by another organization." }); const updated = await model.updateStatus(req.params.id, org.id, req.body.status, req.body.internal_notes); res.json({ request: updated }); } catch (error) { res.status(500).json({ error: "Could not update request status." }); } }
+async function adminAssign(req, res) { try { const organization = await model.organizationById(req.body.organization_id); if (!organization || organization.verification_status !== "Verified") return res.status(400).json({ error: "Only verified organizations can receive assignments." }); const assigned = await model.assign(req.params.id, organization.id); if (!assigned) return res.status(404).json({ error: "Help request not found." }); res.json({ success: true }); } catch (error) { res.status(500).json({ error: "Could not assign help request." }); } }
+module.exports = { stats, list, detail, claim, message, status, adminAssign };

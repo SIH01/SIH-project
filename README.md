@@ -80,7 +80,37 @@ Run these SQL files in the Supabase or PostgreSQL SQL editor, in this order:
 9. `server/db/schema_stage11.sql` - relief requests and shelters.
 10. `server/db/schema_stage12.sql` - public Get Help requests.
 11. `server/db/schema_stage13.sql` - active-alert lifecycle fields.
+13. `server/db/schema_stage15.sql` - verified organization contact threads and messages.
+14. `server/db/schema_stage16.sql` - Get Help organization routing, assignments, and messages.
 
+
+### Verified organization contact portal
+
+The public directory now links to `/organizations/:id/contact`. A person can submit a low-friction request to a verified organization, receive a `DS-XXXXXXXX` tracking ID, and continue the conversation from `/my-requests` using that ID or a citizen account. Requests include category, urgency, location, optional attachment link, status, and an append-only message history.
+
+Organizations use the separate `/org/login` route and land at `/organization/dashboard`. Portal sessions require a verified organization and the `organization_portal` JWT scope. The portal provides an inbox, urgency/status/category filters, request status updates, threaded replies, and 15-second polling for new messages. API routes are grouped under `/api/contact-threads`:
+
+- `POST /` - create a request; public with optional citizen auth.
+- `GET /mine` and `GET /mine/:id` - list or view citizen requests by account or tracking ID.
+- `POST /mine/:id/messages` - continue a citizen conversation.
+- `GET /organization` and `GET /organization/:id` - verified organization inbox and thread.
+- `POST /organization/:id/messages` - organization reply.
+- `PATCH /organization/:id/status` - set `Pending`, `Seen`, `In Progress`, or `Resolved`.
+
+The current notification behavior is in-app polling rather than email/SMS. The existing notification bell remains available for authenticated users; email/SMS delivery can be attached to the organization reply transaction later without changing the thread schema.
+
+The organization portal's Get Help API is separate from the direct-contact thread API:
+
+- `POST /api/org/login` - organization-only login; verified accounts receive an isolated `organization_portal` JWT scope.
+- `GET /api/org/dashboard/stats` - verified organization overview metrics.
+- `GET /api/org/requests` - category/region-matched and admin-assigned Get Help requests, with status, urgency, type, search, and claim filters.
+- `GET /api/org/requests/:id` - request details, routing reason, claim state, and conversation history.
+- `POST /api/org/requests/:id/claim` - atomically claim an unclaimed request and move it to `in_progress`.
+- `POST /api/org/requests/:id/messages` - send an organization reply.
+- `PATCH /api/org/requests/:id/status` - update status and optional internal notes.
+- `PATCH /api/admin/help-requests/:id/assign` - admin-only manual assignment to a verified organization.
+
+Matching normalizes the Get Help type (`food`, `mental_health`, and so on) against organization service tags, then applies a 50 km coordinate check when both sides have coordinates. Admin assignments bypass category/region matching. A request claimed by another organization remains visible with a non-actionable state so duplicate outreach is avoided.
 The latest features require all of these tables. If the new disaster endpoints return `Could not load disasters`, the schema files are usually missing from the database.
 
 ### 4. Add demo data

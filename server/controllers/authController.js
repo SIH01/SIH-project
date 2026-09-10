@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { findByEmail, createUser } = require("../models/userStore");
+const { getByUserId } = require("../models/organizationModel");
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const TOKEN_EXPIRY = "8h";
@@ -54,7 +55,7 @@ async function register(req, res) {
 }
 
 // Shared logic for the three role-specific logins below.
-async function loginAs(expectedRole, req, res) {
+async function loginAs(expectedRole, req, res, extraClaims = {}) {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -72,7 +73,7 @@ async function loginAs(expectedRole, req, res) {
       return res.status(401).json({ error: "Invalid email or password." });
     }
 
-    const token = signToken({ id: user.id, role: user.role, email: user.email });
+    const token = signToken({ id: user.id, role: user.role, email: user.email, ...extraClaims });
     return res.json({ token, user: publicUser(user) });
   } catch (err) {
     console.error(`${expectedRole} login error:`, err.message);
@@ -89,6 +90,19 @@ const adminLogin = (req, res) => loginAs("admin", req, res);
 // POST /api/auth/organization-login
 // No organizations exist until Stage 6 builds registration + admin
 // verification — this endpoint is ready and wired in ahead of that.
-const organizationLogin = (req, res) => loginAs("organization", req, res);
+async function organizationLogin(req, res) {
+  try {
+    const user = req.body.email ? await findByEmail(req.body.email) : null;
+    if (!user || user.role !== "organization") return res.status(401).json({ error: "Invalid email or password." });
+    const organization = await getByUserId(user.id);
+    if (!organization || organization.verification_status !== "Verified") {
+      return res.status(403).json({ error: "Your organization must be verified before portal access is enabled." });
+    }
+    return loginAs("organization", req, res, { scope: "organization_portal" });
+  } catch (err) {
+    console.error("organization login verification error:", err.message);
+    return res.status(500).json({ error: "Could not verify organization access." });
+  }
+}
 
 module.exports = { register, login, adminLogin, organizationLogin };
