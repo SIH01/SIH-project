@@ -18,6 +18,8 @@ const reliefRequestRoutes = require("./routes/reliefRequestRoutes");
 const shelterRoutes = require("./routes/shelterRoutes");
 const helpRequestRoutes = require("./routes/helpRequestRoutes");
 const orgMatchRoutes = require("./routes/orgMatchRoutes");
+const contactThreadRoutes = require("./routes/contactThreadRoutes");
+const organizationHelpRoutes = require("./routes/organizationHelpRoutes");
 const { runActiveAlertJob } = require("./jobs/activeAlertJob");
 
 const app = express();
@@ -71,6 +73,8 @@ app.use("/api/relief-requests", reliefRequestRoutes);
 app.use("/api/shelters", shelterRoutes);
 app.use("/api/help-requests", helpRequestRoutes);
 app.use("/api/org-matching", orgMatchRoutes);
+app.use("/api/contact-threads", contactThreadRoutes);
+app.use("/api/org", organizationHelpRoutes);
 
 const ACTIVE_ALERT_POLL_MS = 15 * 60 * 1000;
 runActiveAlertJob().catch((error) => console.error("initial active alert job error:", error.message));

@@ -51,6 +51,10 @@ export default function Organizations() {
                   ))}
                 </div>
               )}
+              <div style={{ marginTop: "1rem", display: "flex", gap: "0.6rem", flexWrap: "wrap" }}>
+                <Link to={`/organizations/${o.id}/contact`} className="btn btn-relief">Contact Organization</Link>
+                <Link to={`/organizations/${o.id}`} className="btn btn-outline-ink">View profile</Link>
+              </div>
             </div>
           ))}
         </div>

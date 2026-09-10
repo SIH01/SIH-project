@@ -29,6 +29,7 @@ export default function OrganizationLogin() {
 
   return (
     <div className="auth-card" style={{ borderTop: "3px solid var(--awareness)" }}>
+      <p className="eyebrow">Verified partner portal</p>
       <h1>Organization login</h1>
       <p className="subtitle">
         Not registered yet? <Link to="/organizations/register">Register your organization</Link>.
