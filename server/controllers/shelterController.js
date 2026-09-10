@@ -27,12 +27,12 @@ async function create(req, res) {
   const body = parseBody(req.body); const error = validate(body);
   if (error) return res.status(400).json({ error });
   try { res.status(201).json({ shelter: await model.create({ ...body, addedBy: req.organization.id }) }); }
-  catch (err) { res.status(500).json({ error: "Could not submit shelter." }); }
+  catch (err) { console.error("shelter create error:", err.message); res.status(500).json({ error: "Could not submit shelter." }); }
 }
 
 async function listMine(req, res) {
   try { res.json({ shelters: await model.listByOrg(req.organization.id) }); }
-  catch (err) { res.status(500).json({ error: "Could not load your shelters." }); }
+  catch (err) { console.error("shelter listMine error:", err.message); res.status(500).json({ error: "Could not load your shelters." }); }
 }
 
 async function updateOwn(req, res) {
@@ -42,17 +42,17 @@ async function updateOwn(req, res) {
     const shelter = await model.updateOwn(req.params.id, req.organization.id, body);
     if (!shelter) return res.status(404).json({ error: "Shelter not found or not owned by your organization." });
     res.json({ shelter });
-  } catch (err) { res.status(500).json({ error: "Could not update shelter." }); }
+  } catch (err) { console.error("shelter updateOwn error:", err.message); res.status(500).json({ error: "Could not update shelter." }); }
 }
 
 async function pending(req, res) {
   try { res.json({ shelters: await model.listPending() }); }
-  catch (err) { res.status(500).json({ error: "Could not load pending shelters." }); }
+  catch (err) { console.error("shelter pending error:", err.message); res.status(500).json({ error: "Could not load pending shelters." }); }
 }
 
 async function all(req, res) {
   try { res.json({ shelters: await model.listAll() }); }
-  catch (err) { res.status(500).json({ error: "Could not load shelters." }); }
+  catch (err) { console.error("shelter all error:", err.message); res.status(500).json({ error: "Could not load shelters." }); }
 }
 
 async function review(req, res) {
@@ -62,7 +62,7 @@ async function review(req, res) {
     const shelter = await model.review(req.params.id, req.user.id, approvalStatus, req.body.reviewNote);
     if (!shelter) return res.status(404).json({ error: "Shelter not found." });
     res.json({ shelter });
-  } catch (err) { res.status(500).json({ error: "Could not review shelter." }); }
+  } catch (err) { console.error("shelter review error:", err.message); res.status(500).json({ error: "Could not review shelter." }); }
 }
 
 module.exports = { nearby, create, listMine, updateOwn, pending, all, review, OPERATIONAL_STATUSES };

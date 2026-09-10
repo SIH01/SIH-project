@@ -19,7 +19,7 @@ function decodeUtf8Response(value) {
 }
 
 export const api = axios.create({
-  baseURL: "http://localhost:5001/api",
+  baseURL: import.meta.env.VITE_API_URL || "/api",
   headers: {
     Accept: "application/json; charset=utf-8",
   },
@@ -29,7 +29,6 @@ export const api = axios.create({
 api.interceptors.response.use((response) => {
   response.data = decodeUtf8Response(response.data);
   return response;
-  baseURL: import.meta.env.VITE_API_URL || "/api",
 });
 
 export function setAuthToken(token) {

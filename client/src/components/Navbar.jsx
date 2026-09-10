@@ -2,9 +2,11 @@ import React, { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import { api } from "../services/api";
+import NotificationBell from "./NotificationBell.jsx";
 
 const navItems = [
   ["/", "Home", true], ["/map", "Disaster Map"], ["/get-help", "Get Help"],
+  ["/missing-persons", "Missing Persons"], ["/fundraising", "Fundraising"],
   ["/organizations", "Organizations"], ["/about", "About"],
 ];
 
@@ -44,8 +46,19 @@ export default function Navbar() {
 
           {!user && <NavLink to="/login" className="nav-login">Login</NavLink>}
           {user && user.role === "user" && <span className="nav-greeting">Hi, {user.name}</span>}
-          {user && user.role === "admin" && <><NavLink to="/admin/dashboard" className={linkClass}>Admin Dashboard</NavLink><NavLink to="/admin/assistance" className={linkClass}>Help Requests</NavLink></>}
-          {user && user.role === "organization" && <NavLink to="/organization/dashboard" className={linkClass}>Org Dashboard</NavLink>}
+          {user && user.role === "admin" && (
+            <>
+              <NavLink to="/admin/dashboard" className={linkClass}>Admin Dashboard</NavLink>
+              <NavLink to="/admin/assistance" className={linkClass}>Help Requests</NavLink>
+            </>
+          )}
+          {user && user.role === "organization" && (
+            <>
+              <NavLink to="/organization/dashboard" className={linkClass}>Org Dashboard</NavLink>
+              <NavLink to="/organization/campaigns" className={linkClass}>Campaigns</NavLink>
+            </>
+          )}
+          {user && <NotificationBell />}
           {user && <button onClick={handleLogout} className="nav-logout">Logout</button>}
         </div>
       </div>

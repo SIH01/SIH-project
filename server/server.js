@@ -17,6 +17,7 @@ const adminRoutes = require("./routes/adminRoutes");
 const reliefRequestRoutes = require("./routes/reliefRequestRoutes");
 const shelterRoutes = require("./routes/shelterRoutes");
 const helpRequestRoutes = require("./routes/helpRequestRoutes");
+const orgMatchRoutes = require("./routes/orgMatchRoutes");
 const { runActiveAlertJob } = require("./jobs/activeAlertJob");
 
 const app = express();
@@ -55,7 +56,7 @@ app.use("/api/", generalLimiter);
 app.use("/api/auth", authLimiter);
 
 app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", stage: 12 });
+  res.json({ status: "ok", stage: 14 });
 });
 
 app.use("/api/auth", authRoutes);
@@ -69,6 +70,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/relief-requests", reliefRequestRoutes);
 app.use("/api/shelters", shelterRoutes);
 app.use("/api/help-requests", helpRequestRoutes);
+app.use("/api/org-matching", orgMatchRoutes);
 
 const ACTIVE_ALERT_POLL_MS = 15 * 60 * 1000;
 runActiveAlertJob().catch((error) => console.error("initial active alert job error:", error.message));
