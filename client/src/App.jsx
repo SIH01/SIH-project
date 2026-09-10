@@ -1,5 +1,5 @@
 import React from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import Landing from "./pages/Landing.jsx";
@@ -35,9 +35,12 @@ import AdminCampaigns from "./pages/admin/AdminCampaigns.jsx";
 import AdminAuditLogs from "./pages/admin/AdminAuditLogs.jsx";
 
 export default function App() {
+  const location = useLocation();
+  const isOrganizationPortal = location.pathname.startsWith("/organization/") || location.pathname.startsWith("/org/");
+
   return (
     <>
-      <Navbar />
+      {!isOrganizationPortal && <Navbar />}
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/register" element={<Register />} />
