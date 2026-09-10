@@ -14,7 +14,7 @@ async function create(req, res) {
 
 async function list(req, res) {
   try { res.json({ requests: await model.list(req.query) }); }
-  catch (err) { res.status(500).json({ error: "Could not load relief requests." }); }
+  catch (err) { console.error("relief request list error:", err.message); res.status(500).json({ error: "Could not load relief requests." }); }
 }
 
 async function update(req, res) {
@@ -23,7 +23,7 @@ async function update(req, res) {
     const request = await model.updateStatus(req.params.id, req.body.status);
     if (!request) return res.status(404).json({ error: "Relief request not found." });
     res.json({ request });
-  } catch (err) { res.status(500).json({ error: "Could not update relief request." }); }
+  } catch (err) { console.error("relief request update error:", err.message); res.status(500).json({ error: "Could not update relief request." }); }
 }
 
 module.exports = { create, list, update, NEED_TYPES, STATUSES };

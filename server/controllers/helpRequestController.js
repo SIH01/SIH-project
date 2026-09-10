@@ -28,7 +28,7 @@ async function create(req, res) {
 
 async function list(req, res) {
   try { res.json({ requests: await model.list(req.query) }); }
-  catch (err) { res.status(500).json({ error: "Could not load help requests." }); }
+  catch (err) { console.error("help request list error:", err.message); res.status(500).json({ error: "Could not load help requests." }); }
 }
 
 async function update(req, res) {
@@ -37,7 +37,7 @@ async function update(req, res) {
     const request = await model.update(req.params.id, req.body);
     if (!request) return res.status(404).json({ error: "Help request not found." });
     res.json({ request });
-  } catch (err) { res.status(500).json({ error: "Could not update help request." }); }
+  } catch (err) { console.error("help request update error:", err.message); res.status(500).json({ error: "Could not update help request." }); }
 }
 
 module.exports = { create, list, update };

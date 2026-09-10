@@ -33,7 +33,6 @@ function validateDisasterInput(body) {
   return errors;
 }
 
-// GET /api/disasters — public, used by admin's list view and future browsing.
 async function listDisasters(req, res) {
   try {
     const disasters = await getAll(req.query.status);
@@ -46,10 +45,9 @@ async function listDisasters(req, res) {
 
 async function activeCount(req, res) {
   try { res.json({ count: await getActiveCount(), updatedAt: new Date().toISOString() }); }
-  catch (err) { res.status(500).json({ error: "Could not load active alert count." }); }
+  catch (err) { console.error("activeCount error:", err.message); res.status(500).json({ error: "Could not load active alert count." }); }
 }
 
-// GET /api/disasters/nearby?lat=&lng=&radius= — public, powers the map.
 async function getNearbyDisasters(req, res) {
   const lat = parseFloat(req.query.lat);
   const lng = parseFloat(req.query.lng);
@@ -68,7 +66,6 @@ async function getNearbyDisasters(req, res) {
   }
 }
 
-// GET /api/disasters/:id — public. Optional ?lat=&lng= adds distance_km.
 async function getDisasterById(req, res) {
   try {
     const disaster = await getById(req.params.id);
@@ -86,7 +83,6 @@ async function getDisasterById(req, res) {
   }
 }
 
-// POST /api/disasters — admin only.
 async function createDisaster(req, res) {
   const body = { ...req.body, status: storageStatus(req.body.status || "active"), latitude: parseFloat(req.body.latitude), longitude: parseFloat(req.body.longitude) };
   const errors = validateDisasterInput(body);
@@ -102,7 +98,6 @@ async function createDisaster(req, res) {
   }
 }
 
-// PUT /api/disasters/:id — admin only.
 async function updateDisaster(req, res) {
   const body = { ...req.body, status: storageStatus(req.body.status), latitude: parseFloat(req.body.latitude), longitude: parseFloat(req.body.longitude) };
   const errors = validateDisasterInput(body);
@@ -119,7 +114,6 @@ async function updateDisaster(req, res) {
   }
 }
 
-// PATCH /api/disasters/:id/status — admin-only alert state change.
 async function changeDisasterStatus(req, res) {
   const requested = req.body.status;
   if (!ALERT_STATUSES.includes(requested)) return res.status(400).json({ error: "Status must be active, historical, or resolved." });
@@ -130,7 +124,6 @@ async function changeDisasterStatus(req, res) {
   } catch (err) { console.error("changeDisasterStatus error:", err.message); res.status(500).json({ error: "Could not update alert status." }); }
 }
 
-// PATCH /api/disasters/:id/extend — admin-only extension/confirmation.
 async function extendDisaster(req, res) {
   const activeUntil = new Date(req.body.activeUntil);
   if (Number.isNaN(activeUntil.getTime())) return res.status(400).json({ error: "A valid activeUntil date is required." });
@@ -141,7 +134,6 @@ async function extendDisaster(req, res) {
   } catch (err) { console.error("extendDisaster error:", err.message); res.status(500).json({ error: "Could not extend alert." }); }
 }
 
-// DELETE /api/disasters/:id — admin only.
 async function deleteDisaster(req, res) {
   try {
     const deleted = await remove(req.params.id);

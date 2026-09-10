@@ -12,6 +12,12 @@ import GetHelp from "./pages/GetHelp.jsx";
 import Organizations from "./pages/Organizations.jsx";
 import OrganizationLogin from "./pages/OrganizationLogin.jsx";
 import RegisterOrganization from "./pages/RegisterOrganization.jsx";
+import DisasterDetail from "./pages/DisasterDetail.jsx";
+import MissingPersonReport from "./pages/MissingPersonReport.jsx";
+import Fundraising from "./pages/Fundraising.jsx";
+import OrgCampaigns from "./pages/organization/OrgCampaigns.jsx";
+import OrganizationRequestMatching from "./pages/organization/OrganizationRequestMatching.jsx";
+import OrgShelterManager from "./pages/OrgShelterManager.jsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
 import AdminDisasterList from "./pages/admin/AdminDisasterList.jsx";
 import AdminDisasterForm from "./pages/admin/AdminDisasterForm.jsx";
@@ -20,9 +26,9 @@ import AdminShelters from "./pages/admin/AdminShelters.jsx";
 import AdminReliefRequests from "./pages/admin/AdminReliefRequests.jsx";
 import AdminOrganizations from "./pages/admin/AdminOrganizations.jsx";
 import AdminActiveAlerts from "./pages/admin/AdminActiveAlerts.jsx";
-import OrgShelterManager from "./pages/OrgShelterManager.jsx";
-import DisasterDetail from "./pages/DisasterDetail.jsx";
-import ComingSoon from "./components/ComingSoon.jsx";
+import AdminMissingPersons from "./pages/admin/AdminMissingPersons.jsx";
+import AdminCampaigns from "./pages/admin/AdminCampaigns.jsx";
+import AdminAuditLogs from "./pages/admin/AdminAuditLogs.jsx";
 
 export default function App() {
   return (
@@ -37,124 +43,28 @@ export default function App() {
         <Route path="/map" element={<DisasterMap />} />
         <Route path="/disasters/:id" element={<DisasterDetail />} />
         <Route path="/get-help" element={<GetHelp />} />
+        <Route path="/missing-persons" element={<MissingPersonReport />} />
+        <Route path="/fundraising" element={<Fundraising />} />
         <Route path="/organizations" element={<Organizations />} />
         <Route path="/organizations/register" element={<RegisterOrganization />} />
         <Route path="/organizations/login" element={<OrganizationLogin />} />
 
-        <Route
-          path="/admin/dashboard"
-          element={
-            <ProtectedRoute role="admin">
-              <AdminDashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/disasters"
-          element={
-            <ProtectedRoute role="admin">
-              <AdminDisasterList />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/disasters/new"
-          element={
-            <ProtectedRoute role="admin">
-              <AdminDisasterForm />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/disasters/:id/edit"
-          element={
-            <ProtectedRoute role="admin">
-              <AdminDisasterForm />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/assistance"
-          element={
-            <ProtectedRoute role="admin">
-              <AdminAssistanceList />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/admin/dashboard" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
+        <Route path="/admin/disasters" element={<ProtectedRoute role="admin"><AdminDisasterList /></ProtectedRoute>} />
+        <Route path="/admin/disasters/new" element={<ProtectedRoute role="admin"><AdminDisasterForm /></ProtectedRoute>} />
+        <Route path="/admin/disasters/:id/edit" element={<ProtectedRoute role="admin"><AdminDisasterForm /></ProtectedRoute>} />
+        <Route path="/admin/assistance" element={<ProtectedRoute role="admin"><AdminAssistanceList /></ProtectedRoute>} />
         <Route path="/admin/shelters" element={<ProtectedRoute role="admin"><AdminShelters /></ProtectedRoute>} />
         <Route path="/admin/relief-requests" element={<ProtectedRoute role="admin"><AdminReliefRequests /></ProtectedRoute>} />
         <Route path="/admin/organizations" element={<ProtectedRoute role="admin"><AdminOrganizations /></ProtectedRoute>} />
         <Route path="/admin/active-alerts" element={<ProtectedRoute role="admin"><AdminActiveAlerts /></ProtectedRoute>} />
-        <Route
-          path="/organization/dashboard"
-          element={
-            <ProtectedRoute role="organization">
-              <OrgShelterManager />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/organizations"
-          element={
-            <ProtectedRoute role="admin">
-              <ComingSoon
-                title="Organization Verification"
-                stageNote="The API is live (GET /api/organizations/admin/all, PUT /api/organizations/:id/verify) — this admin screen just hasn't been built yet."
-              />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/missing-persons"
-          element={
-            <ComingSoon
-              title="Report a Missing Person"
-              stageNote="The API is live (POST /api/missing-persons) — the report form just hasn't been built yet."
-            />
-          }
-        />
-        <Route
-          path="/admin/missing-persons"
-          element={
-            <ProtectedRoute role="admin">
-              <ComingSoon
-                title="Missing Person Reports"
-                stageNote="The API is live (GET/PUT /api/missing-persons) — this review screen just hasn't been built yet."
-              />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/fundraising"
-          element={
-            <ComingSoon
-              title="Fundraising Campaigns"
-              stageNote="The API is live (GET /api/campaigns) — this public campaigns page just hasn't been built yet."
-            />
-          }
-        />
-        <Route
-          path="/admin/campaigns"
-          element={
-            <ProtectedRoute role="admin">
-              <ComingSoon
-                title="Campaign Verification"
-                stageNote="The API is live (GET /api/campaigns/admin/all, PUT /api/campaigns/:id/verify) — this admin screen just hasn't been built yet."
-              />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/audit-logs"
-          element={
-            <ProtectedRoute role="admin">
-              <ComingSoon
-                title="Audit Logs"
-                stageNote="The API is live (GET /api/admin/audit-logs, GET /api/admin/stats) — this admin screen just hasn't been built yet."
-              />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/admin/missing-persons" element={<ProtectedRoute role="admin"><AdminMissingPersons /></ProtectedRoute>} />
+        <Route path="/admin/campaigns" element={<ProtectedRoute role="admin"><AdminCampaigns /></ProtectedRoute>} />
+        <Route path="/admin/audit-logs" element={<ProtectedRoute role="admin"><AdminAuditLogs /></ProtectedRoute>} />
+
+        <Route path="/organization/dashboard" element={<ProtectedRoute role="organization"><OrgShelterManager /></ProtectedRoute>} />
+        <Route path="/organization/campaigns" element={<ProtectedRoute role="organization"><OrgCampaigns /></ProtectedRoute>} />
+        <Route path="/organization/requests" element={<ProtectedRoute role="organization"><OrganizationRequestMatching /></ProtectedRoute>} />
       </Routes>
     </>
   );
