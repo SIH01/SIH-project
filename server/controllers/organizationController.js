@@ -57,7 +57,6 @@ async function register(req, res) {
   const client = await pool.connect();
   try {
     if (await findByEmail(body.email)) {
-      client.release();
       return res.status(409).json({ error: "An account with that email already exists." });
     }
 
