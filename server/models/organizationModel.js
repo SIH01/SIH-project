@@ -72,4 +72,36 @@ async function setVerificationStatus(id, status) {
   return rows[0] || null;
 }
 
-module.exports = { getVerified, getAll, getPending, getById, getByUserId, create, setVerificationStatus };
+// Admin-only hard delete. Removes the organization profile row (shelters,
+// organization_responses, and campaigns cascade-delete via their FKs; any
+// help/relief requests it claimed are set back to unclaimed) and, in the
+// same transaction, the linked login account so it can no longer sign in.
+// Returns the deleted profile's { id, name, user_id } or null if it
+// didn't exist.
+async function remove(id) {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const { rows } = await client.query(
+      `delete from organizations where id = $1 returning id, name, user_id`,
+      [id]
+    );
+    const deleted = rows[0];
+    if (!deleted) {
+      await client.query("ROLLBACK");
+      return null;
+    }
+    if (deleted.user_id) {
+      await client.query(`delete from users where id = $1`, [deleted.user_id]);
+    }
+    await client.query("COMMIT");
+    return deleted;
+  } catch (err) {
+    await client.query("ROLLBACK");
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
+module.exports = { getVerified, getAll, getPending, getById, getByUserId, create, setVerificationStatus, remove };

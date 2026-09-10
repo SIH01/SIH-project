@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 const pool = require("../db/pool");
 const { findByEmail } = require("../models/userStore");
 const {
-  getVerified, getAll, getPending, getById, getByUserId, create, setVerificationStatus,
+  getVerified, getAll, getPending, getById, getByUserId, create, setVerificationStatus, remove,
 } = require("../models/organizationModel");
 const { logAdminAction } = require("../utils/auditLog");
 const { notify } = require("../utils/notify");
@@ -186,7 +186,25 @@ async function verifyOrganization(req, res) {
   }
 }
 
+// DELETE /api/organizations/:id — admin only. Permanently removes the
+// organization (and its login account). Their shelters, responses, and
+// campaigns go with it; any help/relief requests they'd claimed are simply
+// unclaimed rather than deleted.
+async function deleteOrganization(req, res) {
+  try {
+    const deleted = await remove(req.params.id);
+    if (!deleted) return res.status(404).json({ error: "Organization not found." });
+
+    await logAdminAction(req.user.id, "organization.delete", "organization", deleted.id, deleted.name);
+    res.json({ success: true, organization: { id: deleted.id, name: deleted.name } });
+  } catch (err) {
+    console.error("deleteOrganization error:", err.message);
+    res.status(500).json({ error: "Could not delete organization." });
+  }
+}
+
 module.exports = {
   register, listVerified, listAll, listPending, getMyOrganization, getOrganizationById, verifyOrganization,
+  deleteOrganization,
   ORG_TYPES, ASSISTANCE_CATEGORIES, VERIFICATION_STATUSES,
 };

@@ -3,6 +3,7 @@ const router = express.Router();
 const { requireAuth, requireRole } = require("../middleware/authMiddleware");
 const {
   register, listVerified, listAll, listPending, getMyOrganization, getOrganizationById, verifyOrganization,
+  deleteOrganization,
 } = require("../controllers/organizationController");
 
 // Public
@@ -19,5 +20,6 @@ router.get("/me", requireAuth, requireRole("organization"), getMyOrganization);
 router.get("/:id", getOrganizationById);
 router.put("/:id/verify", requireAuth, requireRole("admin"), verifyOrganization);
 router.patch("/:id/verify", requireAuth, requireRole("admin"), verifyOrganization);
+router.delete("/:id", requireAuth, requireRole("admin"), deleteOrganization);
 
 module.exports = router;
