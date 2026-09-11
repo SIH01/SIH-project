@@ -1,11 +1,11 @@
 .ds-landing {
-  --bg: #1c100c;
-  --cream: #f8f0e5;
-  --amber: #eda94d;
-  --amber-light: #f6c673;
-  --clay: #a65035;
-  --green: #48685b;
-  --text: #261914;
+  --bg: var(--ink);
+  --cream: var(--paper);
+  --amber: var(--accent);
+  --amber-light: var(--accent-light);
+  --clay: var(--relief);
+  --green: var(--awareness);
+  --text: var(--ink-on-paper);
   --text-soft: rgba(38, 25, 20, .66);
   --shadow: 0 30px 70px rgba(0,0,0,.25);
 

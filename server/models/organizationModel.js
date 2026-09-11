@@ -39,6 +39,27 @@ async function getByUserId(userId) {
   return rows[0] || null;
 }
 
+async function updateByUserId(userId, data) {
+  const { rows } = await pool.query(
+    `update organizations set
+       name = coalesce($1, name),
+       type = coalesce($2, type),
+       description = coalesce($3, description),
+       phone = coalesce($4, phone),
+       address = coalesce($5, address),
+       operating_areas = coalesce($6, operating_areas),
+       latitude = coalesce($7, latitude),
+       longitude = coalesce($8, longitude),
+       assistance_categories = coalesce($9, assistance_categories)
+     where user_id = $10
+     returning ${SELECT_FIELDS}`,
+    [data.name || null, data.type || null, data.description ?? null, data.phone ?? null,
+      data.address ?? null, data.operating_areas ?? null, data.latitude ?? null,
+      data.longitude ?? null, data.assistance_categories || null, userId]
+  );
+  return rows[0] || null;
+}
+
 async function create(data) {
   const {
     userId, name, type, description, website, email, phone, address,
@@ -104,4 +125,4 @@ async function remove(id) {
   }
 }
 
-module.exports = { getVerified, getAll, getPending, getById, getByUserId, create, setVerificationStatus, remove };
+module.exports = { getVerified, getAll, getPending, getById, getByUserId, updateByUserId, create, setVerificationStatus, remove };

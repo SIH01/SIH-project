@@ -17,7 +17,7 @@ import OrganizationPortal from "./pages/OrganizationPortal.jsx";
 import OrganizationProfile from "./pages/OrganizationProfile.jsx";
 import RegisterOrganization from "./pages/RegisterOrganization.jsx";
 import DisasterDetail from "./pages/DisasterDetail.jsx";
-import MissingPersonReport from "./pages/MissingPersonReport.jsx";
+import MissingPersons from "./pages/MissingPersons.jsx";
 import Fundraising from "./pages/Fundraising.jsx";
 import OrgCampaigns from "./pages/organization/OrgCampaigns.jsx";
 import OrganizationRequestMatching from "./pages/organization/OrganizationRequestMatching.jsx";
@@ -47,12 +47,13 @@ export default function App() {
         <Route path="/map" element={<DisasterMap />} />
         <Route path="/disasters/:id" element={<DisasterDetail />} />
         <Route path="/get-help" element={<GetHelp />} />
-        <Route path="/missing-persons" element={<MissingPersonReport />} />
+        <Route path="/missing-persons" element={<MissingPersons />} />
         <Route path="/fundraising" element={<Fundraising />} />
         <Route path="/organizations" element={<Organizations />} />
         <Route path="/organizations/register" element={<RegisterOrganization />} />
         <Route path="/organizations/login" element={<OrganizationLogin />} />
         <Route path="/org/login" element={<OrganizationLogin />} />
+        <Route path="/organization/login" element={<OrganizationLogin />} />
         <Route path="/organizations/:id/contact" element={<ContactOrganization />} />
         <Route path="/organizations/:id" element={<OrganizationProfile />} />
         <Route path="/my-requests" element={<MyRequests />} />

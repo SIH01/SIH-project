@@ -14,45 +14,65 @@ const STAT_LABELS = [
 export default function AdminDashboard() {
   const { user } = useAuth();
   const [stats, setStats] = useState(null);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    api.get("/admin/stats").then(({ data }) => setStats(data)).catch(() => setStats(null));
+    api.get("/admin/stats")
+      .then(({ data }) => setStats(data))
+      .catch(() => setError("Live metrics are temporarily unavailable."));
   }, []);
 
   return (
-    <div style={{ maxWidth: "1000px", margin: "3rem auto", padding: "0 2rem" }}>
-      <h1 style={{ fontSize: "1.8rem", marginBottom: "0.5rem" }}>Admin Dashboard</h1>
-      <p>Signed in as {user?.email} (role: {user?.role}).</p>
+    <main className="admin-page admin-dashboard-page">
+      <section className="admin-dashboard-hero">
+        <div>
+          <p className="eyebrow">Operations overview</p>
+          <h1>Admin Dashboard</h1>
+          <p>Monitor response activity, review submissions, and keep the network ready to act.</p>
+        </div>
+        <div className="admin-session-badge">
+          <span className="admin-session-dot" />
+          <span><strong>{user?.name || "Administrator"}</strong><small>{user?.email}</small></span>
+        </div>
+      </section>
 
-      {stats && (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: "0.75rem", margin: "1.5rem 0" }}>
+      {error && <div className="error-banner">{error}</div>}
+
+      {stats ? (
+        <section className="admin-metrics" aria-label="Platform metrics">
           {STAT_LABELS.map(([key, label]) => (
-            <div key={key} style={{ background: "#fff", border: "1px solid var(--line)", borderRadius: "8px", padding: "0.9rem" }}>
-              <div style={{ fontSize: "1.4rem", fontWeight: 800 }}>
+            <div key={key} className={`admin-metric admin-metric-${key}`}>
+              <div className="admin-metric-value">
                 {key === "funds_raised" ? Number(stats[key]).toLocaleString("en-IN") : stats[key]}
               </div>
-              <div style={{ fontSize: "0.78rem", color: "#5c6673" }}>{label}</div>
+              <div className="admin-metric-label">{label}</div>
             </div>
           ))}
+        </section>
+      ) : !error ? <div className="admin-metrics admin-metrics-loading" aria-label="Loading metrics"><span /><span /><span /><span /></div> : null}
+
+      <section className="admin-action-section">
+        <div className="admin-section-heading">
+          <div><p className="eyebrow">Response tools</p><h2>Manage the platform</h2></div>
+          <span>Choose a workspace</span>
         </div>
-      )}
+        <div className="admin-action-grid">
+          <Link to="/admin/active-alerts" className="admin-action-card admin-action-alert"><span className="admin-action-icon">!</span><span><strong>Active Alerts</strong><small>Publish and monitor urgent events</small></span></Link>
+          <Link to="/admin/assistance" className="admin-action-card"><span className="admin-action-icon">↗</span><span><strong>Assistance Requests</strong><small>Triage incoming community needs</small></span></Link>
+          <Link to="/admin/relief-requests" className="admin-action-card"><span className="admin-action-icon">+</span><span><strong>Relief Requests</strong><small>Review direct support requests</small></span></Link>
+          <Link to="/admin/organizations" className="admin-action-card"><span className="admin-action-icon">○</span><span><strong>Organizations</strong><small>Verify response partners</small></span></Link>
+          <Link to="/admin/shelters" className="admin-action-card"><span className="admin-action-icon">⌂</span><span><strong>Shelter Review</strong><small>Approve safe places to stay</small></span></Link>
+          <Link to="/admin/missing-persons" className="admin-action-card"><span className="admin-action-icon">⌕</span><span><strong>Missing People</strong><small>Review reports and updates</small></span></Link>
+          <Link to="/admin/disasters" className="admin-action-card"><span className="admin-action-icon">◌</span><span><strong>Disasters</strong><small>Maintain the incident register</small></span></Link>
+          <Link to="/admin/campaigns" className="admin-action-card"><span className="admin-action-icon">₹</span><span><strong>Campaigns</strong><small>Review fundraising activity</small></span></Link>
+          <Link to="/admin/audit-logs" className="admin-action-card admin-action-muted"><span className="admin-action-icon">≡</span><span><strong>Audit Logs</strong><small>Trace administrative activity</small></span></Link>
+        </div>
+      </section>
 
-      <div style={{ marginTop: "1rem", display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-        <Link to="/admin/disasters" className="btn btn-awareness">Manage Disasters</Link>
-        <Link to="/admin/active-alerts" className="btn btn-relief">Active Alerts</Link>
-        <Link to="/admin/assistance" className="btn btn-awareness">Assistance Requests</Link>
-        <Link to="/admin/relief-requests" className="btn btn-awareness">Relief Requests</Link>
-        <Link to="/admin/shelters" className="btn btn-awareness">Shelter Review</Link>
-        <Link to="/admin/organizations" className="btn btn-awareness">Organizations</Link>
-        <Link to="/admin/missing-persons" className="btn btn-awareness">Missing Persons</Link>
-        <Link to="/admin/campaigns" className="btn btn-awareness">Campaigns</Link>
-        <Link to="/admin/audit-logs" className="btn btn-outline-ink">Audit Logs</Link>
-      </div>
-
-      <p style={{ marginTop: "2rem", color: "#5c6673" }}>
-        Review organization access, shelter submissions, missing person reports, fundraising campaigns,
-        and community relief needs from one place.
-      </p>
-    </div>
+      <section className="admin-dashboard-note">
+        <span className="admin-note-mark">✓</span>
+        <div><strong>Keep response information current</strong><p>Review active alerts and pending organization approvals first when a new incident is reported.</p></div>
+      </section>
+    </main>
   );
 }

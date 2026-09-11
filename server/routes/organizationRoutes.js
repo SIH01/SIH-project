@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { requireAuth, requireRole } = require("../middleware/authMiddleware");
 const {
-  register, listVerified, listAll, listPending, getMyOrganization, getOrganizationById, verifyOrganization,
+  register, listVerified, listAll, listPending, getMyOrganization, updateMyOrganization, getOrganizationById, verifyOrganization,
   deleteOrganization,
 } = require("../controllers/organizationController");
 
@@ -16,6 +16,7 @@ router.get("/pending", requireAuth, requireRole("admin"), listPending);
 
 // Organization's own profile — must also come before "/:id".
 router.get("/me", requireAuth, requireRole("organization"), getMyOrganization);
+router.patch("/me", requireAuth, requireRole("organization"), updateMyOrganization);
 
 router.get("/:id", getOrganizationById);
 router.put("/:id/verify", requireAuth, requireRole("admin"), verifyOrganization);

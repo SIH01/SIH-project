@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../services/api";
 import "./contactPortal.css";
+import OrganizationProfileEditor from "../components/OrganizationProfileEditor.jsx";
 
 function cls(value) { return String(value || "").toLowerCase().replace(" ", "-"); }
 export default function OrganizationPortal() {

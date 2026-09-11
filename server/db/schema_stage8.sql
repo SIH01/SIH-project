@@ -12,6 +12,7 @@ create table if not exists missing_person_reports (
   age integer check (age >= 0 and age < 150),
   last_known_location text not null,
   date_last_seen date not null,
+  photo_url text,
   description text,
   additional_information text,
   status text not null default 'Reported' check (

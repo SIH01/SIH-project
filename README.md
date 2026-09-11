@@ -80,8 +80,10 @@ Run these SQL files in the Supabase or PostgreSQL SQL editor, in this order:
 9. `server/db/schema_stage11.sql` - relief requests and shelters.
 10. `server/db/schema_stage12.sql` - public Get Help requests.
 11. `server/db/schema_stage13.sql` - active-alert lifecycle fields.
+12. `server/db/schema_stage14.sql` - organization request claiming fields.
 13. `server/db/schema_stage15.sql` - verified organization contact threads and messages.
 14. `server/db/schema_stage16.sql` - Get Help organization routing, assignments, and messages.
+15. `server/db/schema_stage17.sql` - missing people report photos.
 
 
 ### Verified organization contact portal

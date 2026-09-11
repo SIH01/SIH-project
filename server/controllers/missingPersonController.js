@@ -1,4 +1,4 @@
-const { getAll, getById, create, updateStatus } = require("../models/missingPersonModel");
+const { getAll, getPublic, getById, create, updateStatus, remove } = require("../models/missingPersonModel");
 const { logAdminAction } = require("../utils/auditLog");
 
 const STATUSES = ["Reported", "Under Review", "Searching", "Located", "Closed"];
@@ -10,6 +10,7 @@ function validateInput(body) {
   if (!body.person_name || !body.person_name.trim()) errors.push("The missing person's name is required.");
   if (!body.last_known_location || !body.last_known_location.trim()) errors.push("Last known location is required.");
   if (!body.date_last_seen) errors.push("Date last seen is required.");
+  if (body.photo_url && !body.photo_url.startsWith("data:image/")) errors.push("Photo must be an image.");
   if (body.age != null && (Number.isNaN(body.age) || body.age < 0 || body.age > 149)) {
     errors.push("Age must be a realistic number.");
   }
@@ -43,6 +44,17 @@ async function listReports(req, res) {
   }
 }
 
+// GET /api/missing-persons/public — public directory, without reporter details.
+async function listPublicReports(req, res) {
+  try {
+    const reports = await getPublic();
+    res.json({ reports });
+  } catch (err) {
+    console.error("listPublicReports error:", err.message);
+    res.status(500).json({ error: "Could not load missing persons." });
+  }
+}
+
 // GET /api/missing-persons/:id — admin only.
 async function getReportById(req, res) {
   try {
@@ -72,4 +84,17 @@ async function updateReport(req, res) {
   }
 }
 
-module.exports = { createReport, listReports, getReportById, updateReport, STATUSES };
+// DELETE /api/missing-persons/:id — admin-only permanent removal.
+async function deleteReport(req, res) {
+  try {
+    const report = await remove(req.params.id);
+    if (!report) return res.status(404).json({ error: "Missing people report not found." });
+    await logAdminAction(req.user.id, "missing_person.delete", "missing_person_report", report.id, report.person_name);
+    res.json({ success: true });
+  } catch (err) {
+    console.error("deleteReport error:", err.message);
+    res.status(500).json({ error: "Could not delete missing people report." });
+  }
+}
+
+module.exports = { createReport, listReports, listPublicReports, getReportById, updateReport, deleteReport, STATUSES };

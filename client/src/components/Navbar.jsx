@@ -6,7 +6,7 @@ import NotificationBell from "./NotificationBell.jsx";
 
 const navItems = [
   ["/", "Home", true], ["/map", "Disaster Map"], ["/get-help", "Get Help"],
-  ["/missing-persons", "Missing Persons"], ["/fundraising", "Fundraising"],
+  ["/missing-persons", "Missing People"], ["/fundraising", "Fundraising"],
   ["/organizations", "Organizations"], ["/my-requests", "My Requests"], ["/about", "About"],
 ];
 
