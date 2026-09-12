@@ -191,9 +191,12 @@ button { font-family: var(--font-body); cursor: pointer; }
   border-radius: 8px;
   box-shadow: 0 3px 12px rgba(16,27,45,0.14);
   font-size: 0.75rem;
+  color: #dcecf8;
   max-height: 70%;
   overflow-y: auto;
 }
+.map-legend strong { color: #a6d9f5; }
+.map-legend-item { color: #dcecf8; }
 .map-legend-item { display: flex; align-items: center; gap: 0.4rem; margin-top: 0.35rem; }
 .map-legend-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
 .disaster-results-panel { background: var(--surface); }
