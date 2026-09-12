@@ -42,7 +42,7 @@ export default function Navbar() {
 
         <div className="nav-links">
           {navItems.map(([path, label, end]) => <NavLink key={path} to={path} end={end} className={linkClass}>{label}</NavLink>)}
-          {user?.role === "organization" ? <NavLink to="/organization/dashboard" className={linkClass}>My Dashboard</NavLink> : <NavLink to="/org/login" className={linkClass}>Organization Portal</NavLink>}
+          {user?.role === "organization" ? <NavLink to="/organization/dashboard" className={linkClass}>Organization Dashboard</NavLink> : <NavLink to="/org/login" className={linkClass}>Organization Portal</NavLink>}
           <NavLink to="/map?status=active" className="nav-alert-chip"><span className="nav-alert-dot" />{activeAlerts == null ? "Live alerts" : `${activeAlerts} active alert${activeAlerts === 1 ? "" : "s"}`}</NavLink>
 
           {!user && <NavLink to="/login" className="nav-login">Login</NavLink>}
