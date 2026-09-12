@@ -38,14 +38,11 @@ import OrganizationAuthLayout from "./components/OrganizationAuthLayout.jsx";
 
 export default function App() {
   const location = useLocation();
-  const isOrganizationRoute = location.pathname.startsWith("/organization/")
-    || location.pathname.startsWith("/org/")
-    || location.pathname.startsWith("/organizations/login")
-    || location.pathname.startsWith("/organizations/register");
+  const isOrganizationPortal = location.pathname.startsWith("/organization/") || location.pathname.startsWith("/org/");
 
   return (
     <>
-      {!isOrganizationRoute && <Navbar />}
+      {!isOrganizationPortal && <Navbar />}
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/register" element={<Register />} />
