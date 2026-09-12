@@ -86,4 +86,4 @@ async function escalate(reportId, organizationId) {
   return rows[0] || null;
 }
 
-module.exports = { getAll, getById, create, updateStatus, getForOrganization, addOrganizationUpdate, escalate };
+module.exports = { getAll, getPublic, getById, create, updateStatus, getForOrganization, addOrganizationUpdate, escalate };
