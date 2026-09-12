@@ -105,6 +105,7 @@ The organization portal's Get Help API is separate from the direct-contact threa
 
 - `POST /api/org/login` - organization-only login; verified accounts receive an isolated `organization_portal` JWT scope.
 - `GET /api/org/dashboard/stats` - verified organization overview metrics.
+- `GET /api/organizations/me` and `PATCH /api/organizations/me` - view and update the logged-in organization's profile, services, operating area, and coordinates.
 - `GET /api/org/requests` - category/region-matched and admin-assigned Get Help requests, with status, urgency, type, search, and claim filters.
 - `GET /api/org/requests/:id` - request details, routing reason, claim state, and conversation history.
 - `POST /api/org/requests/:id/claim` - atomically claim an unclaimed request and move it to `in_progress`.

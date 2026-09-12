@@ -293,7 +293,7 @@ export default function DisasterMap() {
         </div>
 
         {selected && (
-          <div style={{ flex: 1, minWidth: "260px", height: "65vh", overflowY: "auto", background: "#fff", border: "1px solid var(--line)", borderRadius: "6px" }}>
+          <div className="disaster-results-panel" style={{ flex: 1, minWidth: "260px", height: "65vh", overflowY: "auto", border: "1px solid var(--line)", borderRadius: "6px" }}>
             {loadingDisasters ? (
               <p style={{ padding: "1rem" }}>Loading disaster records…</p>
             ) : filteredDisasters.length === 0 ? (
@@ -334,7 +334,7 @@ export default function DisasterMap() {
         )}
       </div>
 
-      <p style={{ padding: "1rem 2rem", color: "#5c6673", fontSize: "0.9rem" }}>
+      <p className="map-help-text" style={{ padding: "1rem 2rem", fontSize: "0.9rem" }}>
         Click anywhere on the map to drop a pin, or search above. Disaster markers within {radiusKm} km
         of your selected point appear automatically — filter, sort, or click any record for full details.
       </p>
