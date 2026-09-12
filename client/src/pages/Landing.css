@@ -1,13 +1,13 @@
 .ds-landing {
-  --bg: #1c100c;
-  --cream: #f8f0e5;
-  --amber: #eda94d;
-  --amber-light: #f6c673;
-  --clay: #a65035;
-  --green: #48685b;
-  --text: #261914;
-  --text-soft: rgba(38, 25, 20, .66);
-  --shadow: 0 30px 70px rgba(0,0,0,.25);
+  --bg: #111a24;
+  --cream: #edf5fb;
+  --amber: #72b9e8;
+  --amber-light: #a6d9f5;
+  --clay: #4d9bd0;
+  --green: #3d91c8;
+  --text: #edf5fb;
+  --text-soft: rgba(237, 245, 251, .68);
+  --shadow: 0 30px 70px rgba(0, 0, 0, .34);
 
   font-family: "DM Sans", sans-serif;
   color: var(--cream);
@@ -16,6 +16,7 @@
 
 .ds-landing h1 {
   max-width: 680px;
+  color: var(--amber);
   font-family: "Fraunces", serif;
   font-size: clamp(46px, 5vw, 72px);
   line-height: .98;
@@ -41,8 +42,9 @@
   display: flex;
   align-items: center;
   background:
-    radial-gradient(circle at 75% 35%, rgba(224,143,56,.23), transparent 34%),
-    linear-gradient(115deg, #1c100c 0%, #2b1813 47%, #513024 100%);
+    radial-gradient(circle at 77% 32%, rgba(92,155,194,.24), transparent 31%),
+    repeating-linear-gradient(112deg, rgba(255,255,255,.035) 0 1px, transparent 1px 7px),
+    linear-gradient(115deg, #0c131b 0%, #1b2732 48%, #263845 100%);
 }
 .ds-landing .hero::before {
   content: "";
@@ -52,17 +54,17 @@
   right: -180px;
   top: -160px;
   border-radius: 50%;
-  border: 1px solid rgba(248,210,150,.13);
+  border: 1px solid rgba(178,220,242,.18);
   box-shadow:
-    0 0 0 60px rgba(248,210,150,.025),
-    0 0 0 120px rgba(248,210,150,.018),
-    0 0 0 180px rgba(248,210,150,.012);
+    0 0 0 60px rgba(178,220,242,.04),
+    0 0 0 120px rgba(178,220,242,.025),
+    0 0 0 180px rgba(178,220,242,.016);
 }
 .ds-landing .hero::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, rgba(20,10,7,.96), rgba(20,10,7,.8) 35%, rgba(20,10,7,.22) 72%, transparent);
+  background: linear-gradient(90deg, rgba(8,14,20,.92), rgba(8,14,20,.72) 35%, rgba(8,14,20,.24) 72%, transparent);
   pointer-events: none;
 }
 .ds-landing .hero-copy {
@@ -80,10 +82,10 @@
   font-size: 12px;
   font-weight: 600;
   letter-spacing: .2px;
-  border: 1px solid rgba(248,240,229,.12);
+  border: 1px solid rgba(220,239,249,.18);
   border-radius: 30px;
-  color: rgba(248,240,229,.72);
-  background: rgba(255,255,255,.045);
+  color: rgba(237,245,251,.8);
+  background: rgba(255,255,255,.07);
   backdrop-filter: blur(10px);
 }
 .ds-landing .eyebrow-dot {
@@ -95,7 +97,7 @@
 }
 .ds-landing .hero-description {
   max-width: 570px;
-  color: rgba(248,240,229,.68);
+  color: rgba(237,245,251,.72);
   font-size: 17px;
   line-height: 1.7;
   margin-bottom: 34px;
@@ -123,20 +125,21 @@
   transform: translateY(-2px);
 }
 .ds-landing .btn-primary {
-  color: #21130e;
+  color: #102b40;
   background: linear-gradient(135deg, var(--amber-light), var(--amber));
-  box-shadow: 0 12px 30px rgba(237,169,77,.18);
+  box-shadow: 0 12px 30px rgba(103,190,235,.2);
 }
 .ds-landing .btn-primary:hover {
-  box-shadow: 0 18px 40px rgba(237,169,77,.28);
+  background: linear-gradient(135deg, #c2e9fb, #88c9ee);
+  box-shadow: 0 18px 40px rgba(103,190,235,.34);
 }
 .ds-landing .btn-secondary {
-  color: var(--cream);
-  background: rgba(255,255,255,.055);
-  border: 1px solid rgba(248,240,229,.2);
+  color: #12304a;
+  background: rgba(255,255,255,.72);
+  border: 1px solid rgba(220,239,249,.7);
 }
 .ds-landing .btn-secondary:hover {
-  background: rgba(255,255,255,.09);
+  background: rgba(255,255,255,.88);
 }
 
 .ds-landing .hero-visual {
@@ -152,13 +155,13 @@
   position: absolute;
   inset: 50px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(237,169,77,.25), rgba(237,169,77,.05) 42%, transparent 70%);
+  background: radial-gradient(circle, rgba(74,163,218,.24), rgba(74,163,218,.05) 42%, transparent 70%);
   filter: blur(3px);
 }
 .ds-landing .shield-ring {
   position: absolute;
   inset: 70px;
-  border: 1px solid rgba(246,198,115,.2);
+  border: 1px solid rgba(31,118,184,.2);
   border-radius: 50%;
 }
 .ds-landing .shield-ring::before,
@@ -166,12 +169,12 @@
   content: "";
   position: absolute;
   inset: 35px;
-  border: 1px solid rgba(246,198,115,.14);
+  border: 1px solid rgba(31,118,184,.14);
   border-radius: 50%;
 }
 .ds-landing .shield-ring::after {
   inset: 75px;
-  border-color: rgba(246,198,115,.09);
+  border-color: rgba(31,118,184,.09);
 }
 .ds-landing .shield {
   position: absolute;
@@ -181,9 +184,9 @@
   width: 170px;
   height: 190px;
   clip-path: polygon(50% 0, 88% 12%, 82% 62%, 50% 100%, 18% 62%, 12% 12%);
-  background: linear-gradient(145deg, rgba(246,198,115,.26), rgba(120,53,34,.12));
-  border: 1px solid rgba(246,198,115,.38);
-  box-shadow: 0 0 65px rgba(237,169,77,.16);
+  background: linear-gradient(145deg, rgba(93,169,220,.3), rgba(31,118,184,.12));
+  border: 1px solid rgba(31,118,184,.38);
+  box-shadow: 0 0 65px rgba(31,118,184,.16);
 }
 .ds-landing .shield::after {
   content: "✦";
@@ -191,9 +194,9 @@
   left: 50%;
   top: 44%;
   transform: translate(-50%,-50%);
-  color: var(--amber-light);
+  color: var(--amber);
   font-size: 45px;
-  text-shadow: 0 0 30px rgba(237,169,77,.7);
+  text-shadow: 0 0 30px rgba(31,118,184,.35);
 }
 .ds-landing .person {
   position: absolute;
@@ -304,10 +307,10 @@
 .ds-landing .card-green { background: var(--green); color: var(--cream); }
 .ds-landing .card-green p { color: rgba(248,240,229,.7); }
 .ds-landing .card-green .pill { background: rgba(255,255,255,.12); color: #dce9e4; }
-.ds-landing .card-red { background: linear-gradient(145deg, #a65337, #7d3927); color: var(--cream); }
-.ds-landing .card-red p { color: rgba(248,240,229,.72); }
-.ds-landing .card-red .pill { background: rgba(255,255,255,.12); color: #f6ddd4; }
-.ds-landing .card-red .btn-secondary { border-color: rgba(255,255,255,.28); }
+.ds-landing .card-red { background: linear-gradient(145deg, #c9eaff, #a9d8f3); color: var(--text); }
+.ds-landing .card-red p { color: var(--text-soft); }
+.ds-landing .card-red .pill { background: rgba(255,255,255,.52); color: #1c6397; }
+.ds-landing .card-red .btn-secondary { border-color: rgba(31,118,184,.28); color: var(--text); background: rgba(255,255,255,.38); }
 
 .ds-landing .map-lines {
   position: absolute;

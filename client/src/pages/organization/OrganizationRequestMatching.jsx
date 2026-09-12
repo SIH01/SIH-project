@@ -43,7 +43,7 @@ export default function OrganizationRequestMatching() {
     setError("");
     try {
       const org = await loadOrg();
-      if (org.verification_status === "Verified") {
+      if (org.verification_status === "Verified" && org.latitude != null && org.longitude != null) {
         await Promise.all([loadNearby(radius), loadMine()]);
       }
     } catch (err) {
@@ -84,6 +84,20 @@ export default function OrganizationRequestMatching() {
         <div className="dashboard-card">
           <h1>Nearby requests</h1>
           <p className="dashboard-muted">Your organization is awaiting admin approval before you can view or respond to requests.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (organization && (organization.latitude == null || organization.longitude == null)) {
+    return (
+      <div className="dashboard-shell">
+        <div className="dashboard-card">
+          <h1>Nearby requests</h1>
+          <p className="dashboard-muted">
+            You are signed in as {organization.name}. Add your organization's latitude and longitude to view requests near you.
+          </p>
+          <p className="dashboard-muted">Your organization session is still active. Contact an administrator to update the registered location.</p>
         </div>
       </div>
     );

@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api } from "../services/api";
+import OrganizationProfileEditor from "../components/OrganizationProfileEditor.jsx";
+import { useAuth } from "../context/AuthContext.jsx";
+import NotificationBell from "../components/NotificationBell.jsx";
 import "./contactPortal.css";
 
 const label = (value) => String(value || "").replace(/_/g, " ");

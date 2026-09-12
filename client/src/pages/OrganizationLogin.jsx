@@ -40,7 +40,7 @@ export default function OrganizationLogin() {
       <form onSubmit={handleSubmit}>
         <div className="field">
           <label htmlFor="email">Organization email</label>
-          <input id="email" name="email" type="email" value={form.email} onChange={handleChange} required />
+          <input id="email" name="email" type="email" placeholder="663576@gmail.com" value={form.email} onChange={handleChange} required />
         </div>
         <div className="field">
           <label htmlFor="password">Password</label>

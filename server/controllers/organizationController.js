@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 const pool = require("../db/pool");
 const { findByEmail } = require("../models/userStore");
 const {
-  getVerified, getAll, getPending, getById, getByUserId, create, setVerificationStatus, remove,
+  getVerified, getAll, getPending, getById, getByUserId, updateByUserId, create, setVerificationStatus, remove,
 } = require("../models/organizationModel");
 const { logAdminAction } = require("../utils/auditLog");
 const { notify } = require("../utils/notify");
@@ -148,6 +148,33 @@ async function getMyOrganization(req, res) {
   }
 }
 
+// PATCH /api/organizations/me — organization-owned profile fields only.
+async function updateMyOrganization(req, res) {
+  const allowedTypes = ORG_TYPES;
+  const { name, type, description, phone, address, operating_areas, latitude, longitude, assistance_categories } = req.body || {};
+  if (type && !allowedTypes.includes(type)) return res.status(400).json({ error: "Invalid organization type." });
+  if (assistance_categories && (!Array.isArray(assistance_categories) || assistance_categories.some((item) => !ASSISTANCE_CATEGORIES.includes(item)))) {
+    return res.status(400).json({ error: "Invalid assistance category." });
+  }
+  const parsedLatitude = latitude === "" || latitude == null ? null : parseFloat(latitude);
+  const parsedLongitude = longitude === "" || longitude == null ? null : parseFloat(longitude);
+  if ((parsedLatitude != null && (!Number.isFinite(parsedLatitude) || parsedLatitude < -90 || parsedLatitude > 90)) ||
+      (parsedLongitude != null && (!Number.isFinite(parsedLongitude) || parsedLongitude < -180 || parsedLongitude > 180))) {
+    return res.status(400).json({ error: "Coordinates must be valid latitude and longitude values." });
+  }
+  try {
+    const organization = await updateByUserId(req.user.id, {
+      name: name?.trim(), type, description, phone, address, operating_areas,
+      latitude: parsedLatitude, longitude: parsedLongitude, assistance_categories,
+    });
+    if (!organization) return res.status(404).json({ error: "Organization profile not found." });
+    res.json({ organization });
+  } catch (err) {
+    console.error("updateMyOrganization error:", err.message);
+    res.status(500).json({ error: "Could not update organization profile." });
+  }
+}
+
 // GET /api/organizations/:id — public, single org (used on the directory detail view).
 async function getOrganizationById(req, res) {
   try {
@@ -204,7 +231,7 @@ async function deleteOrganization(req, res) {
 }
 
 module.exports = {
-  register, listVerified, listAll, listPending, getMyOrganization, getOrganizationById, verifyOrganization,
+  register, listVerified, listAll, listPending, getMyOrganization, updateMyOrganization, getOrganizationById, verifyOrganization,
   deleteOrganization,
   ORG_TYPES, ASSISTANCE_CATEGORIES, VERIFICATION_STATUSES,
 };

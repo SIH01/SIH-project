@@ -15,9 +15,9 @@ const selectStyle = {
   borderRadius: "10px",
   fontSize: "0.88rem",
   fontFamily: "var(--font-body)",
-  background: "#fff",
+  background: "var(--surface-soft)",
   color: "var(--ink-on-paper)",
-  boxShadow: "0 2px 8px rgba(16,27,45,0.04)",
+  boxShadow: "none",
 };
 
 export default function DisasterFilters({ filters, onChange }) {

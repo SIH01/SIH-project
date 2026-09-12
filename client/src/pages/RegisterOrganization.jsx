@@ -6,6 +6,7 @@ import { ORG_TYPES, ASSISTANCE_CATEGORIES } from "../utils/organizationOptions";
 const fieldStyle = {
   width: "100%", padding: "0.6rem 0.8rem", border: "1px solid var(--line)",
   borderRadius: "4px", fontSize: "0.95rem", fontFamily: "var(--font-body)",
+  background: "var(--surface-soft)", color: "var(--ink-on-paper)",
 };
 const labelStyle = { display: "block", fontWeight: 600, marginBottom: "0.35rem", fontSize: "0.9rem" };
 const wrap = { marginBottom: "1.1rem" };
@@ -62,7 +63,7 @@ export default function RegisterOrganization() {
     return (
       <div style={{ maxWidth: "560px", margin: "4rem auto", padding: "0 2rem", textAlign: "center" }}>
         <h1 style={{ fontSize: "1.6rem", marginBottom: "0.75rem" }}>Application submitted</h1>
-        <p style={{ color: "#5c6673", marginBottom: "1.5rem" }}>
+        <p style={{ color: "var(--text-muted)", marginBottom: "1.5rem" }}>
           An admin will review your organization's details. You'll be able to log in once verified —
           look out for a status update.
         </p>
@@ -72,9 +73,9 @@ export default function RegisterOrganization() {
   }
 
   return (
-    <div style={{ maxWidth: "640px", margin: "3rem auto", padding: "0 2rem" }}>
+    <div className="org-auth-register">
       <h1 style={{ fontSize: "1.8rem", marginBottom: "0.4rem" }}>Register your organization</h1>
-      <p style={{ color: "#5c6673", marginBottom: "1.75rem" }}>
+      <p style={{ color: "var(--text-muted)", marginBottom: "1.75rem" }}>
         NGOs, charities, and relief groups register here. An admin reviews every application before
         your organization can respond to requests or create fundraising campaigns.
       </p>

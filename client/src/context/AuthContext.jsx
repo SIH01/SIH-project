@@ -9,13 +9,32 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      const { token, user: storedUser } = JSON.parse(stored);
-      setAuthToken(token);
-      setUser(storedUser);
+    function restoreSession(stored) {
+      if (!stored) {
+        setAuthToken(null);
+        setUser(null);
+        return;
+      }
+      try {
+        const { token, user: storedUser } = JSON.parse(stored);
+        if (!token || !storedUser) throw new Error("Invalid stored session");
+        setAuthToken(token);
+        setUser(storedUser);
+      } catch {
+        localStorage.removeItem(STORAGE_KEY);
+        setAuthToken(null);
+        setUser(null);
+      }
     }
+
+    restoreSession(localStorage.getItem(STORAGE_KEY));
     setLoading(false);
+
+    function handleStorage(event) {
+      if (event.key === STORAGE_KEY) restoreSession(event.newValue);
+    }
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
   }, []);
 
   function persist(token, userData) {

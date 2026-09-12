@@ -58,7 +58,7 @@ export default function MissingPersonReport() {
   return (
     <main className="help-shell">
       <section className="help-card">
-        <h1>Report a Missing Person</h1>
+        <h1>Report Missing People</h1>
         <p className="help-intro">
           This report goes straight to review — it is never automatically made public. An administrator
           will review the details before taking any action.
@@ -74,7 +74,7 @@ export default function MissingPersonReport() {
             <input id="mp-reporter-contact" value={form.reporter_contact} onChange={(e) => set("reporter_contact", e.target.value)} required />
           </div>
           <div className="help-field">
-            <label htmlFor="mp-person-name">Missing person's name</label>
+            <label htmlFor="mp-person-name">Person's name</label>
             <input id="mp-person-name" value={form.person_name} onChange={(e) => set("person_name", e.target.value)} required />
           </div>
           <div className="help-field">

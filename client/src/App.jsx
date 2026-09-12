@@ -17,7 +17,7 @@ import OrganizationPortal from "./pages/OrganizationPortal.jsx";
 import OrganizationProfile from "./pages/OrganizationProfile.jsx";
 import RegisterOrganization from "./pages/RegisterOrganization.jsx";
 import DisasterDetail from "./pages/DisasterDetail.jsx";
-import MissingPersonReport from "./pages/MissingPersonReport.jsx";
+import MissingPersons from "./pages/MissingPersons.jsx";
 import Fundraising from "./pages/Fundraising.jsx";
 import OrgCampaigns from "./pages/organization/OrgCampaigns.jsx";
 import OrganizationRequestMatching from "./pages/organization/OrganizationRequestMatching.jsx";
@@ -33,6 +33,8 @@ import AdminActiveAlerts from "./pages/admin/AdminActiveAlerts.jsx";
 import AdminMissingPersons from "./pages/admin/AdminMissingPersons.jsx";
 import AdminCampaigns from "./pages/admin/AdminCampaigns.jsx";
 import AdminAuditLogs from "./pages/admin/AdminAuditLogs.jsx";
+import OrgDashboardLayout from "./components/OrgDashboardLayout.jsx";
+import OrganizationAuthLayout from "./components/OrganizationAuthLayout.jsx";
 
 export default function App() {
   const location = useLocation();
@@ -50,12 +52,13 @@ export default function App() {
         <Route path="/map" element={<DisasterMap />} />
         <Route path="/disasters/:id" element={<DisasterDetail />} />
         <Route path="/get-help" element={<GetHelp />} />
-        <Route path="/missing-persons" element={<MissingPersonReport />} />
+        <Route path="/missing-persons" element={<MissingPersons />} />
         <Route path="/fundraising" element={<Fundraising />} />
         <Route path="/organizations" element={<Organizations />} />
-        <Route path="/organizations/register" element={<RegisterOrganization />} />
-        <Route path="/organizations/login" element={<OrganizationLogin />} />
-        <Route path="/org/login" element={<OrganizationLogin />} />
+        <Route path="/organizations/register" element={<OrganizationAuthLayout><RegisterOrganization /></OrganizationAuthLayout>} />
+        <Route path="/organizations/login" element={<OrganizationAuthLayout><OrganizationLogin /></OrganizationAuthLayout>} />
+        <Route path="/org/login" element={<OrganizationAuthLayout><OrganizationLogin /></OrganizationAuthLayout>} />
+        <Route path="/organization/login" element={<OrganizationAuthLayout><OrganizationLogin /></OrganizationAuthLayout>} />
         <Route path="/organizations/:id/contact" element={<ContactOrganization />} />
         <Route path="/organizations/:id" element={<OrganizationProfile />} />
         <Route path="/my-requests" element={<MyRequests />} />
@@ -75,8 +78,10 @@ export default function App() {
 
         <Route path="/organization/dashboard" element={<ProtectedRoute role="organization"><OrganizationPortal /></ProtectedRoute>} />
         <Route path="/org/dashboard" element={<ProtectedRoute role="organization"><OrganizationPortal /></ProtectedRoute>} />
-        <Route path="/organization/campaigns" element={<ProtectedRoute role="organization"><OrgCampaigns /></ProtectedRoute>} />
-        <Route path="/organization/requests" element={<ProtectedRoute role="organization"><OrganizationRequestMatching /></ProtectedRoute>} />
+        <Route element={<ProtectedRoute role="organization"><OrgDashboardLayout /></ProtectedRoute>}>
+          <Route path="/organization/campaigns" element={<OrgCampaigns />} />
+          <Route path="/organization/requests" element={<OrganizationRequestMatching />} />
+        </Route>
       </Routes>
     </>
   );

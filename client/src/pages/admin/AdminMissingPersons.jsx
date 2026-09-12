@@ -15,7 +15,7 @@ export default function AdminMissingPersons() {
       const { data } = await api.get("/missing-persons");
       setReports(data.reports || []);
     } catch (err) {
-      setError("Could not load missing person reports.");
+      setError("Could not load missing people reports.");
     } finally {
       setLoading(false);
     }
@@ -32,9 +32,19 @@ export default function AdminMissingPersons() {
     }
   }
 
+  async function deleteReport(report) {
+    if (!window.confirm(`Delete the report for "${report.person_name}"? This cannot be undone.`)) return;
+    try {
+      await api.delete(`/missing-persons/${report.id}`);
+      setReports((prev) => prev.filter((item) => item.id !== report.id));
+    } catch (err) {
+      alert(err.response?.data?.error || "Could not delete missing people report.");
+    }
+  }
+
   return (
     <div className="admin-page">
-      <h1>Missing Person Reports</h1>
+      <h1>Missing People Reports</h1>
       {error && <div className="error-banner">{error}</div>}
       {loading ? (
         <p>Loading…</p>
@@ -44,7 +54,7 @@ export default function AdminMissingPersons() {
         <div className="admin-table-wrap">
           <table className="admin-table">
             <thead>
-              <tr><th>Person</th><th>Last Seen</th><th>Reporter</th><th>Description</th><th>Status</th></tr>
+              <tr><th>Person</th><th>Last Seen</th><th>Reporter</th><th>Description</th><th>Status</th><th>Action</th></tr>
             </thead>
             <tbody>
               {reports.map((r) => (
@@ -57,6 +67,16 @@ export default function AdminMissingPersons() {
                     <select value={r.status} onChange={(e) => updateStatus(r.id, e.target.value)}>
                       {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
                     </select>
+                  </td>
+                  <td>
+                    <button
+                      type="button"
+                      className="btn btn-outline-ink"
+                      style={{ padding: "0.35rem 0.65rem", color: "var(--relief-dark)", borderColor: "var(--relief-dark)" }}
+                      onClick={() => deleteReport(r)}
+                    >
+                      Delete
+                    </button>
                   </td>
                 </tr>
               ))}

@@ -6,7 +6,7 @@ import NotificationBell from "./NotificationBell.jsx";
 
 const navItems = [
   ["/", "Home", true], ["/map", "Disaster Map"], ["/get-help", "Get Help"],
-  ["/missing-persons", "Missing Persons"], ["/fundraising", "Fundraising"],
+  ["/missing-persons", "Missing People"], ["/fundraising", "Fundraising"],
   ["/organizations", "Organizations"], ["/my-requests", "My Requests"], ["/about", "About"],
 ];
 
@@ -42,7 +42,7 @@ export default function Navbar() {
 
         <div className="nav-links">
           {navItems.map(([path, label, end]) => <NavLink key={path} to={path} end={end} className={linkClass}>{label}</NavLink>)}
-          <NavLink to="/org/login" className={linkClass}>Organization Portal</NavLink>
+          {user?.role === "organization" ? <NavLink to="/organization/dashboard" className={linkClass}>Organization Dashboard</NavLink> : <NavLink to="/org/login" className={linkClass}>Organization Portal</NavLink>}
           <NavLink to="/map?status=active" className="nav-alert-chip"><span className="nav-alert-dot" />{activeAlerts == null ? "Live alerts" : `${activeAlerts} active alert${activeAlerts === 1 ? "" : "s"}`}</NavLink>
 
           {!user && <NavLink to="/login" className="nav-login">Login</NavLink>}
@@ -55,7 +55,6 @@ export default function Navbar() {
           )}
           {user && user.role === "organization" && (
             <>
-              <NavLink to="/organization/dashboard" className={linkClass}>Org Portal</NavLink>
               <NavLink to="/organization/requests" className={linkClass}>Nearby Requests</NavLink>
               <NavLink to="/organization/campaigns" className={linkClass}>Campaigns</NavLink>
             </>

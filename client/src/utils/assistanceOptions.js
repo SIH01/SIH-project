@@ -1,6 +1,6 @@
 export const REQUEST_TYPES = [
   "Food", "Shelter", "Medical", "Mental Health",
-  "Missing Person", "Financial", "Other",
+  "Missing People", "Financial", "Other",
 ];
 export const REQUEST_STATUSES = ["Pending", "In Progress", "Resolved"];
 
